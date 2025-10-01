@@ -60,8 +60,8 @@ class FlowGameSolver:
         # --- Actions ---
         tk.Label(panel, text="Actions", font=("Arial", 12, "bold")).pack(pady=5)
         tk.Button(panel, text="⏮ Reset", command=self.reset_game, width=12).pack(pady=3)
-        tk.Button(panel, text="DFS", command=lambda: self.solve_game(DFS=True), width=12).pack(pady=3)
-        tk.Button(panel, text="BFS", command=lambda: self.solve_game(BFS=True), width=12).pack(pady=3)
+        tk.Button(panel, text="🌳 DFS", command=lambda: self.solve_game(DFS=True), width=12).pack(pady=3)
+        tk.Button(panel, text="🌊 BFS", command=lambda: self.solve_game(BFS=True), width=12).pack(pady=3)
 
         # --- Settings ---
         tk.Label(panel, text="Settings", font=("Arial", 12, "bold")).pack(pady=10)
@@ -71,6 +71,8 @@ class FlowGameSolver:
                                      command=self.update_speed, length=150)
         self.speed_slider.set(self.speed)
         self.speed_slider.pack(pady=5)
+
+        tk.Button(panel, text="🌗 Toggle Theme", command=self.toggle_theme, width=15).pack(pady=5)
 
         # --- Info ---
         tk.Label(panel, text="Info", font=("Arial", 12, "bold")).pack(pady=10)
@@ -83,6 +85,13 @@ class FlowGameSolver:
     def update_speed(self, val):
         self.speed = float(val)
 
+    def toggle_theme(self):
+        if self.theme == "Light":
+            self.theme = "Dark"
+            self.canvas.config(bg="black")
+        else:
+            self.theme = "Light"
+            self.canvas.config(bg="white")
 
     def mark_start_end(self):
         for color, points in self.pairs.items():
@@ -212,18 +221,16 @@ class FlowGameSolver:
                         q.append((nr, nc))
         return None
 
-    #Hien thi duong di ma thuat toan duyet qua
     def paint_cell(self, r, c, color):
         self.canvas.itemconfig(self.rects[(r, c)], fill=color)
         self.master.update()
-        time.sleep(self.speed)   
+        time.sleep(0.05)   # tốc độ hiển thị
 
-    #Hien thi duong di tung cap mau da xac dinh
     def paint_path(self, path, color):
         for (r, c) in path:
             self.canvas.itemconfig(self.rects[(r, c)], fill=color)
             self.master.update()
-            time.sleep(self.speed)  
+            time.sleep(0.5)  # tốc độ animation
 
 
 
