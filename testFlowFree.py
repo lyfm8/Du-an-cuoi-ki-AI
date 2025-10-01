@@ -9,7 +9,7 @@ class FlowGameSolver:
         master.minsize(800, 600)
 
         self.grid_size = 6
-        self.colors = ["red", "green", "blue", "yellow", "black"]
+        self.colors = ["red", "green", "blue", "yellow", "orange"]
 
         # ví dụ pairs
         self.pairs = {
@@ -17,7 +17,7 @@ class FlowGameSolver:
             "green": [(0, 4), (4, 4)],
             "blue": [(0, 0), (1, 1)],
             "yellow": [(1, 0), (0, 2)],
-            "black": [(2, 1), (4, 1)]
+            "orange": [(2, 1), (4, 1)]
         }
 
         self.initial_grid = [['' for _ in range(self.grid_size)] for _ in range(self.grid_size)]
@@ -29,6 +29,18 @@ class FlowGameSolver:
         self.create_widgets()
         self.update_grid_display(self.initial_grid)
 
+    def mark_start_end(self):
+        for color, points in self.pairs.items():
+            for (r, c) in points:
+                # tô màu nền
+                self.canvas.itemconfig(self.rects[(r, c)], fill=color)
+                # thêm hình tròn để phân biệt
+                x1, y1, x2, y2 = self.canvas.coords(self.rects[(r, c)])
+                self.canvas.create_oval(
+                    x1+15, y1+15, x2-15, y2-15,
+                    fill=color, outline="black", width=2
+                )
+
     def create_widgets(self):
         # canvas để vẽ grid
         self.canvas = tk.Canvas(self.master,
@@ -36,6 +48,7 @@ class FlowGameSolver:
                                 height=self.grid_size*self.cell_size,
                                 bg="white")
         self.canvas.pack(pady=10)
+        
 
         self.rects = {}
         for r in range(self.grid_size):
@@ -47,6 +60,9 @@ class FlowGameSolver:
                 rect = self.canvas.create_rectangle(x1, y1, x2, y2,
                                                     fill="white", outline="gray")
                 self.rects[(r, c)] = rect
+                
+        self.mark_start_end()
+       
 
         # control buttons
         self.control_frame = tk.Frame(self.master)
@@ -58,6 +74,9 @@ class FlowGameSolver:
 
         self.status_label = tk.Label(self.master, text="Sẵn sàng...", fg="black")
         self.status_label.pack(pady=5)
+
+    
+
 
     def update_grid_display(self, grid_state, animate=False):
         """Cập nhật màu grid. Nếu animate=True thì tô từng bước"""
