@@ -3,7 +3,6 @@ from collections import deque
 
 
 
-
 '''
 Uninformed: BFS, DFS, UCS, IDS
 
@@ -27,20 +26,33 @@ class algorithm:
 
     # ---------- DFS ----------
     def dfs_solver(self, grid, colors, idx):
+        # Kiểm tra stop request
+        if self.ui.stop_requested:
+            return False, None
+            
         if idx == len(colors):
             return True, grid
         color = colors[idx]
         start, end = self.ui.pairs[color]
 
         def backtrack(path, visited):
+            # Kiểm tra stop request
+            if self.ui.stop_requested:
+                return False, None
+            
+
             r, c = path[-1]
             if (r, c) == end:
                 new_grid = [row[:] for row in grid]
                 for (pr, pc) in path:
                     new_grid[pr][pc] = color
+                
                 ok, res = self.dfs_solver(new_grid, colors, idx+1)
                 if ok:
+                    # Vẽ đường hoàn chỉnh cho màu này
+                    self.ui.paint_path(path, colors[idx])
                     return True, res
+            
                 return False, None
 
             for dr, dc in [(0,1),(0,-1),(1,0),(-1,0)]:
@@ -53,12 +65,17 @@ class algorithm:
                         if ok: return True, res
                         path.pop()
                         visited.remove((nr, nc))
+                        
             return False, None
 
         return backtrack([start], {start})
 
     # ---------- BFS ----------
     def bfs_solver(self, grid, colors):
+        # Kiểm tra stop request
+        if self.ui.stop_requested:
+            return False, None
+        
         if not colors:
             return True, grid
 
@@ -85,6 +102,10 @@ class algorithm:
         q = deque([start])
         parents = {start: None}
         while q:
+            # Kiểm tra stop request
+            if self.ui.stop_requested:
+                return False, None
+            
             r, c = q.popleft()
             # highlight node đang xét
             if (r, c) not in [start, end]:
