@@ -1,28 +1,14 @@
 import tkinter as tk
-from collections import deque
 import time
+from algorithm_ff import algorithm
 
 
 
-'''
-Uninformed: BFS, DFS, UCS, IDS
 
-Informed: Greedy, A*
-
-Local & Optimization: Hill-Climbing, Simulated Annealing, Beam Search, GA
-
-CSP: Backtracking, Forward Checking, AC-3
-
-Adversarial:Minimax, Alpha-Beta, Expectiminimax (dối kháng)
-
-And-Or search: Planning
-
-
-'''
-
-class FlowGameSolver:
+class UI:
     def __init__(self, master):
         self.master = master
+        self.algo = algorithm(self)
         master.title("Flow Game Solver")
         master.minsize(800, 600)
 
@@ -82,7 +68,7 @@ class FlowGameSolver:
 
         # --- lựa chọn thuật toán---
         tk.Label(panel, text="Actions", font=("Arial", 12, "bold")).pack(pady=5)
-        tk.Button(panel, text="⏮ Reset", command=self.reset_game, width=12).pack(pady=3)
+        tk.Button(panel, text="Reset", command=self.reset_game, width=12).pack(pady=3)
         tk.Button(panel, text="DFS", command=lambda: self.solve_game(DFS=True), width=12).pack(pady=3)
         tk.Button(panel, text="BFS", command=lambda: self.solve_game(BFS=True), width=12).pack(pady=3)
 
@@ -138,10 +124,9 @@ class FlowGameSolver:
         self.master.update_idletasks()
 
         if DFS:
-        
-            solved, solution = self.dfs_solver(self.initial_grid, list(self.colors), 0)
+            solved, solution = self.algo.dfs_solver(self.initial_grid, list(self.colors), 0)
         if BFS:
-            solved, solution = self.bfs_solver(self.initial_grid, list(self.colors))
+            solved, solution = self.algo.bfs_solver(self.initial_grid, list(self.colors))
 
         elapsed = time.time() - start_time
         self.timer_label.config(text=f"⏱ {elapsed:.2f}s")
@@ -152,88 +137,7 @@ class FlowGameSolver:
         else:
             self.status_label.config(text="Không tìm thấy lời giải.", fg="red")
 
-    # ---------- DFS ----------
-    def dfs_solver(self, grid, colors, idx):
-        if idx == len(colors):
-            return True, grid
-        color = colors[idx]
-        start, end = self.pairs[color]
-
-        def backtrack(path, visited):
-            r, c = path[-1]
-            if (r, c) == end:
-                new_grid = [row[:] for row in grid]
-                for (pr, pc) in path:
-                    new_grid[pr][pc] = color
-                ok, res = self.dfs_solver(new_grid, colors, idx+1)
-                if ok:
-                    return True, res
-                return False, None
-
-            for dr, dc in [(0,1),(0,-1),(1,0),(-1,0)]:
-                nr, nc = r+dr, c+dc
-                if 0 <= nr < self.grid_size and 0 <= nc < self.grid_size:
-                    if (nr, nc) not in visited and (grid[nr][nc] == '' or (nr, nc) == end):
-                        visited.add((nr, nc))
-                        path.append((nr, nc))
-                        ok, res = backtrack(path, visited)
-                        if ok: return True, res
-                        path.pop()
-                        visited.remove((nr, nc))
-            return False, None
-
-        return backtrack([start], {start})
-
-    # ---------- BFS ----------
-    def bfs_solver(self, grid, colors):
-        if not colors:
-            return True, grid
-
-        for i, color in enumerate(colors):
-            start, end = self.pairs[color]
-            path = self.bfs_find_path(grid, start, end)
-            if not path:
-                continue
-            if path:
-                new_grid = [row[:] for row in grid]
-                for (r, c) in path:
-                    new_grid[r][c] = color
-
-                # tô luôn đường tìm được cho cặp này
-                self.paint_path(path, color)
-
-                remaining = colors[:i] + colors[i+1:]
-                ok, solution = self.bfs_solver(new_grid, remaining)
-            if ok:
-                return True, solution
-        return False, None
-
-    def bfs_find_path(self, grid, start, end):
-        q = deque([start])
-        parents = {start: None}
-        while q:
-            r, c = q.popleft()
-            # highlight node đang xét
-            if (r, c) not in [start, end]:
-                self.paint_cell(r, c, "lightblue")
-
-            if (r, c) == end:
-                # reconstruct path
-                path = []
-                cur = end
-                while cur is not None:
-                    path.append(cur)
-                    cur = parents[cur]
-                path.reverse()
-                return path
-
-            for dr, dc in [(0,1),(0,-1),(1,0),(-1,0)]:
-                nr, nc = r+dr, c+dc
-                if 0 <= nr < self.grid_size and 0 <= nc < self.grid_size:
-                    if (nr, nc) not in parents and (grid[nr][nc] == '' or (nr, nc) == end):
-                        parents[(nr, nc)] = (r, c)
-                        q.append((nr, nc))
-        return None
+    
 
     #Hien thi duong di ma thuat toan duyet qua
     def paint_cell(self, r, c, color):
@@ -256,10 +160,4 @@ class FlowGameSolver:
         self.status_label.config(text="Sẵn sàng...", fg="black")
         self.timer_label.config(text="⏱ 0.0s")
 
-def main():
-    root = tk.Tk()
-    app = FlowGameSolver(root)
-    root.mainloop()
 
-if __name__ == "__main__":
-    main()
