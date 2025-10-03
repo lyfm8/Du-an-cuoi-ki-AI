@@ -2,6 +2,24 @@ import tkinter as tk
 from collections import deque
 import time
 
+
+
+'''
+Uninformed: BFS, DFS, UCS, IDS
+
+Informed: Greedy, A*
+
+Local & Optimization: Hill-Climbing, Simulated Annealing, Beam Search, GA
+
+CSP: Backtracking, Forward Checking, AC-3
+
+Adversarial:Minimax, Alpha-Beta, Expectiminimax (dối kháng)
+
+And-Or search: Planning
+
+
+'''
+
 class FlowGameSolver:
     def __init__(self, master):
         self.master = master
@@ -12,7 +30,6 @@ class FlowGameSolver:
         self.colors = ["red", "green", "blue", "yellow", "orange"]
         self.cell_size = 70
         self.speed = 0.2
-        self.theme = "Light"
 
         # ví dụ pairs
         self.pairs = {
@@ -23,7 +40,13 @@ class FlowGameSolver:
             "orange": [(2, 1), (4, 1)]
         }
 
-        self.initial_grid = [['' for _ in range(self.grid_size)] for _ in range(self.grid_size)]
+        self.initial_grid = []
+
+        for _ in range(self.grid_size):          # lặp qua số hàng
+            row = []                             # tạo một hàng rỗng
+            for _ in range(self.grid_size):      # lặp qua số cột
+                row.append('')                   # thêm 1 ô rỗng vào hàng
+            self.initial_grid.append(row)        # thêm hàng vào lưới
         for color, pair in self.pairs.items():
             self.initial_grid[pair[0][0]][pair[0][1]] = color
             self.initial_grid[pair[1][0]][pair[1][1]] = color
@@ -57,13 +80,13 @@ class FlowGameSolver:
         panel = tk.Frame(parent, bd=2, relief="ridge", padx=10, pady=10)
         panel.grid(row=0, column=1, sticky="ns", padx=10, pady=10)
 
-        # --- Actions ---
+        # --- lựa chọn thuật toán---
         tk.Label(panel, text="Actions", font=("Arial", 12, "bold")).pack(pady=5)
         tk.Button(panel, text="⏮ Reset", command=self.reset_game, width=12).pack(pady=3)
         tk.Button(panel, text="DFS", command=lambda: self.solve_game(DFS=True), width=12).pack(pady=3)
         tk.Button(panel, text="BFS", command=lambda: self.solve_game(BFS=True), width=12).pack(pady=3)
 
-        # --- Settings ---
+        # --- lựa chọn cài đặt---
         tk.Label(panel, text="Settings", font=("Arial", 12, "bold")).pack(pady=10)
         tk.Label(panel, text="Speed:").pack()
         self.speed_slider = tk.Scale(panel, from_=0.05, to=1.0,
@@ -72,7 +95,7 @@ class FlowGameSolver:
         self.speed_slider.set(self.speed)
         self.speed_slider.pack(pady=5)
 
-        # --- Info ---
+        # --- hiển thị thông tin---
         tk.Label(panel, text="Info", font=("Arial", 12, "bold")).pack(pady=10)
         self.status_label = tk.Label(panel, text="Sẵn sàng...", fg="black")
         self.status_label.pack(pady=5)
