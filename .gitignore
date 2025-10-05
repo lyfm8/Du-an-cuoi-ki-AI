@@ -1,0 +1,62 @@
+# ---------------------------
+# Python
+# ---------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Byte-compiled / optimized / DLL files
+*.dll
+*.dylib
+*.exe
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+*.manifest
+*.spec
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# dotenv environment variables
+.env
+*.env
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+coverage.xml
+*.cover
+*.py,cover
+
+# Logs
+*.log
+
+# ---------------------------
+# IDE / Editor configs
+# ---------------------------
+
+# VS Code
+.vscode/
+
+# PyCharm / JetBrains
+.idea/
+
+# ---------------------------
+# System files
+# ---------------------------
+.DS_Store
+Thumbs.db

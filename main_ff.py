@@ -1,11 +1,12 @@
 from UI_ff import UI
 import tkinter as tk
+import customtkinter as ctk
 
 
 
 
 def main():
-    root = tk.Tk()
+    root = ctk.CTk()
     app = UI(root)
     root.mainloop()
 
