@@ -4,17 +4,19 @@ from collections import deque
 
 
 '''
-Uninformed: BFS, DFS, UCS, IDS
+Uninformed: 1.BFS, 2.DFS, 3.UCS, 1.IDS
 
-Informed: Greedy, A*
+Informed: 2.Greedy, 3.A*
 
-Local & Optimization: Hill-Climbing, Simulated Annealing, Beam Search, GA
+Local & Optimization: 1.Hill-Climbing, 2.Simulated Annealing, 3.Beam Search, GA
 
-CSP: Backtracking, Forward Checking, AC-3
+CSP: 1.Backtracking+Forward Checking, AC-3
 
-Adversarial:Minimax, Alpha-Beta, Expectiminimax (dối kháng)
+Adversarial: 1.Minimax, 2.Alpha-Beta, 3.Expectiminimax (dối kháng)
 
-And-Or search: Planning
+Planning: 2.And-Or search, 3.Belief search
+
+
 
 
 '''

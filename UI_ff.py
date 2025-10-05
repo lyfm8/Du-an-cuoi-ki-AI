@@ -269,7 +269,16 @@ class UI:
         for color in self.colors:
             self.canvas.delete(f"path_{color}")
 
+        # xoá các marker cũ
+        self.canvas.delete()
+
+        # dat tat ca o ve ban dau
+        for _ in self.rects.values():
+            self.canvas.itemconfig(_, fill='white')
+
+        #ve lai cac cap mau
         self.mark_start_end()
+
         self.status_label.configure(text="Sẵn sàng...", text_color="lightblue" if ctk.get_appearance_mode() == "Dark" else "blue")
         self.timer_label.configure(text="⏱ 0.0s")
         self.stop_requested = False
