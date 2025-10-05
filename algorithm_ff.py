@@ -3,7 +3,6 @@ from collections import deque
 
 
 
-
 '''
 Uninformed: BFS, DFS, UCS, IDS
 
@@ -23,24 +22,38 @@ And-Or search: Planning
 class algorithm:
     def __init__(self, ui):
         self.ui=ui
-        
+
 
     # ---------- DFS ----------
     def dfs_solver(self, grid, colors, idx):
+        # Kiểm tra stop request
+        if self.ui.stop_requested:
+            return False, None
+
         if idx == len(colors):
             return True, grid
         color = colors[idx]
         start, end = self.ui.pairs[color]
+        #self.ui.log(f"➡️ Đang xử lý màu {color.upper()} từ {start} đến {end}")
 
         def backtrack(path, visited):
+            # Kiểm tra stop request
+            if self.ui.stop_requested:
+                return False, None
+
+
             r, c = path[-1]
             if (r, c) == end:
                 new_grid = [row[:] for row in grid]
                 for (pr, pc) in path:
                     new_grid[pr][pc] = color
+                self.ui.log(f"✅ Tìm thấy đường cho màu {color}")
                 ok, res = self.dfs_solver(new_grid, colors, idx+1)
                 if ok:
+                    # Vẽ đường hoàn chỉnh cho màu này
+                    self.ui.paint_path(path, colors[idx])
                     return True, res
+
                 return False, None
 
             for dr, dc in [(0,1),(0,-1),(1,0),(-1,0)]:
@@ -53,19 +66,26 @@ class algorithm:
                         if ok: return True, res
                         path.pop()
                         visited.remove((nr, nc))
+
             return False, None
 
         return backtrack([start], {start})
 
     # ---------- BFS ----------
     def bfs_solver(self, grid, colors):
+        # Kiểm tra stop request
+        if self.ui.stop_requested:
+            return False, None
+
         if not colors:
             return True, grid
 
         for i, color in enumerate(colors):
             start, end = self.ui.pairs[color]
-            path = self.bfs_find_path(grid, start, end)
+            self.ui.log(f"➡️ Tìm đường cho màu {color} bằng BFS...")
+            path = self.bfs_find_path(grid, start, end, color)
             if not path:
+                self.ui.log(f"⚠️ Không tìm được đường cho màu {color}")
                 continue
             if path:
                 new_grid = [row[:] for row in grid]
@@ -81,14 +101,20 @@ class algorithm:
                 return True, solution
         return False, None
 
-    def bfs_find_path(self, grid, start, end):
+    def bfs_find_path(self, grid, start, end, color):
         q = deque([start])
         parents = {start: None}
         while q:
+            # Kiểm tra stop request
+            if self.ui.stop_requested:
+                return False, None
+
             r, c = q.popleft()
             # highlight node đang xét
             if (r, c) not in [start, end]:
                 self.ui.paint_cell(r, c, "lightblue")
+                self.ui.log(f"🔹 Mở rộng {color} tại ({r},{c})")
+
 
             if (r, c) == end:
                 # reconstruct path
