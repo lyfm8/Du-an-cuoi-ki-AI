@@ -111,7 +111,7 @@ class UI:
 
         ctk.CTkLabel(panel2, text="Informed", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 2))
         ctk.CTkButton(panel2, text="💡 UCS", width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 Greedy", width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 Greedy", command=lambda: self.solve_game(GREEDY=True), width=180).pack(pady=7, padx=10)
         ctk.CTkButton(panel2, text="💡 A*", width=180).pack(pady=7, padx=10)
 
         ctk.CTkLabel(panel2, text="Local & Optimization", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 2))
@@ -202,7 +202,7 @@ class UI:
                     time.sleep(self.speed)
         self.master.update_idletasks()
 
-    def solve_game(self, DFS=False, BFS=False):
+    def solve_game(self, DFS=False, BFS=False, GREEDY = False):
         self.is_solving = True
         self.stop_requested = False
         start_time = time.time()
@@ -214,6 +214,8 @@ class UI:
             solved, solution = self.algo.dfs_solver(self.initial_grid, list(self.colors), 0)
         if BFS:
             solved, solution = self.algo.bfs_solver(self.initial_grid, list(self.colors))
+        if GREEDY:
+            solved, solution = self.algo.greedy_solver(self.initial_grid, list(self.colors), alpha=1)
 
         elapsed = time.time() - start_time
         self.timer_label.configure(text=f"⏱ {elapsed:.2f}s")

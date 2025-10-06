@@ -1,4 +1,5 @@
 from collections import deque
+import heapq
 
 
 
@@ -26,7 +27,52 @@ class algorithm:
         self.ui=ui
 
 
-    
+    # ---------- DFS ----------
+    def dfs_solver(self, grid, colors, idx):
+        # Kiểm tra stop request
+        if self.ui.stop_requested:
+            return False, None
+
+        if idx == len(colors):
+            return True, grid
+        color = colors[idx]
+        start, end = self.ui.pairs[color]
+        self.ui.log(f"➡️ Đang xử lý màu {color.upper()} từ {start} đến {end}")
+
+        def backtrack(path, visited):
+            # Kiểm tra stop request
+            if self.ui.stop_requested:
+                return False, None
+
+
+            r, c = path[-1]
+            if (r, c) == end:
+                new_grid = [row[:] for row in grid]
+                for (pr, pc) in path:
+                    new_grid[pr][pc] = color
+                self.ui.log(f"✅ Tìm thấy đường cho màu {color}")
+                ok, res = self.dfs_solver(new_grid, colors, idx+1)
+                if ok:
+                    # Vẽ đường hoàn chỉnh cho màu này
+                    self.ui.paint_path(path, colors[idx])
+                    return True, res
+
+                return False, None
+
+            for dr, dc in [(0,1),(0,-1),(1,0),(-1,0)]:
+                nr, nc = r+dr, c+dc
+                if 0 <= nr < self.ui.grid_size and 0 <= nc < self.ui.grid_size:
+                    if (nr, nc) not in visited and (grid[nr][nc] == '' or (nr, nc) == end):
+                        visited.add((nr, nc))
+                        path.append((nr, nc))
+                        ok, res = backtrack(path, visited)
+                        if ok: return True, res
+                        path.pop()
+                        visited.remove((nr, nc))
+
+            return False, None
+
+        return backtrack([start], {start})
 
     # ---------- BFS ----------
     def bfs_solver(self, grid, colors):
@@ -92,5 +138,60 @@ class algorithm:
         return None
     
 
-    #----------IDS----------
+    
+    
+    #----------GREEDY----------
+    def heuristic_greedy(self, grid, color, alpha):
+        (sx, sy), (ex, ey) = self.ui.pairs[color]
+        # yeu to 1_manhattan: |x1-x2| + |y1-y2|
+        h1 = abs(sx - ex) + abs(sy - ey)
+
+        # yeu to 2: tinh cac diem mau khac lien ke mau dang xet
+        h2 = 0
+        for (r, c) in [(sx, sy), (ex, ey)]:
+            for dr, dc in [(-1,0), (1,0), (0,-1), (0,1)]:
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < self.ui.grid_size and 0 <= nc < self.ui.grid_size:
+                    cell = grid[nr][nc]
+                    if cell != "" and cell != color:
+                        h2 += 1
+
+        return h1 + alpha * h2
+
+    
+    def greedy_solver(self, grid, colors, alpha):
+        # Kiểm tra stop request
+        if self.ui.stop_requested:
+            return False, None
+
+        if not colors:
+            return True, grid
+        
+        hq = []
+
+        for color in colors:
+            cost = self.heuristic_greedy(grid, color, alpha)
+            heapq.heappush(hq, (cost, color))
+
+        new_grid = [row[:] for row in grid]
+        solved_colors = []
+
+        while hq:
+            cost, color = heapq.heappop(hq)
+            start, end = self.ui.pairs[color]
+            self.ui.log(f"➡️ Tìm đường cho màu {color} (h={cost})")
+
+            path = self.bfs_find_path(new_grid, start, end, color)
+            if not path:
+                self.ui.log(f"⚠️Không tìm được đường cho màu {color}")
+                continue
+
+            # tô màu và cập nhật grid
+            for (r, c) in path:
+                new_grid[r][c] = color
+            self.ui.paint_path(path, color)
+            solved_colors.append(color)
+            
+        return True, new_grid
+
     
