@@ -115,7 +115,7 @@ class UI:
         ctk.CTkButton(panel2, text="💡 A*", width=180).pack(pady=7, padx=10)
 
         ctk.CTkLabel(panel2, text="Local & Optimization", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 2))
-        ctk.CTkButton(panel2, text="💡 Hill-Climbing", width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 Hill-Climbing", command=lambda: self.solve_game(HC=True), width=180).pack(pady=7, padx=10)
         ctk.CTkButton(panel2, text="💡 Simulated Annealing", width=180).pack(pady=7, padx=10)
         ctk.CTkButton(panel2, text="💡 Beam Search", width=180).pack(pady=7, padx=10)
 
@@ -202,7 +202,7 @@ class UI:
                     time.sleep(self.speed)
         self.master.update_idletasks()
 
-    def solve_game(self, DFS=False, BFS=False, GREEDY = False):
+    def solve_game(self, DFS=False, BFS=False, GREEDY = False, HC = False):
         self.is_solving = True
         self.stop_requested = False
         start_time = time.time()
@@ -216,6 +216,9 @@ class UI:
             solved, solution = self.algo.bfs_solver(self.initial_grid, list(self.colors))
         if GREEDY:
             solved, solution = self.algo.greedy_solver(self.initial_grid, list(self.colors), alpha=1)
+        if HC:
+            solved, solution = self.algo.hc_solver(self.initial_grid, list(self.colors), max_steps=10)
+
 
         elapsed = time.time() - start_time
         self.timer_label.configure(text=f"⏱ {elapsed:.2f}s")
@@ -248,6 +251,8 @@ class UI:
         for i in range(len(path) - 1):
             r1, c1 = path[i]
             r2, c2 = path[i + 1]
+
+            
 
             x1, y1 = c1 * cell_size + cell_size // 2, r1 * cell_size + cell_size // 2
             x2, y2 = c2 * cell_size + cell_size // 2, r2 * cell_size + cell_size // 2

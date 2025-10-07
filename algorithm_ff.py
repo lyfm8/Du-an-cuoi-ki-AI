@@ -1,5 +1,7 @@
 from collections import deque
 import heapq
+import random
+import copy
 
 
 
@@ -75,6 +77,7 @@ class algorithm:
         return backtrack([start], {start})
 
     # ---------- BFS ----------
+    # Khác biệt: Có sử dụng backtracking để thử bắt đầu từ 1 root (màu) mới để mở rộng hơn
     def bfs_solver(self, grid, colors):
         # Kiểm tra stop request
         if self.ui.stop_requested:
@@ -129,12 +132,24 @@ class algorithm:
                 path.reverse()
                 return path
 
-            for dr, dc in [(0,1),(0,-1),(1,0),(-1,0)]:
-                nr, nc = r+dr, c+dc
+            # duyệt 4 hướng
+            for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                nr, nc = r + dr, c + dc
                 if 0 <= nr < self.ui.grid_size and 0 <= nc < self.ui.grid_size:
-                    if (nr, nc) not in parents and (grid[nr][nc] == '' or (nr, nc) == end):
-                        parents[(nr, nc)] = (r, c)
-                        q.append((nr, nc))
+                    if (nr, nc) not in parents:
+                        cell = grid[nr][nc]
+
+                        # chỉ được đi nếu:
+                        # - ô trống, hoặc
+                        # - ô cùng màu, hoặc
+                        # - ô end (và ô end đang trống hoặc có đúng màu)
+                        if (
+                            cell == "" 
+                            or cell == color 
+                            or ((nr, nc) == end and (grid[nr][nc] in ["", color]))
+                        ):
+                            parents[(nr, nc)] = (r, c)
+                            q.append((nr, nc))
         return None
     
 
@@ -191,7 +206,146 @@ class algorithm:
                 new_grid[r][c] = color
             self.ui.paint_path(path, color)
             solved_colors.append(color)
-            
+
         return True, new_grid
+    
+    #----------Hill-Climbing------------
+    def heuristic_hc(self, grid):
+        #y tuong: so cap mau chua duoc noi
+        cnt = 0
+        for color, (start, end) in self.ui.pairs.items():
+            if self.path_exists(grid, start, end, color) == False:
+                cnt += 1
+        return cnt
+    
+    def path_exists(self, grid, start, end, color):
+        q = deque([start])
+        visited = {start}
+
+        while q:
+            r, c = q.popleft()
+            if (r, c) == end:
+                return True
+
+            for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < self.ui.grid_size and 0 <= nc < self.ui.grid_size:
+                    if (nr, nc) not in visited:
+                        cell = grid[nr][nc]
+                        #  chỉ đi qua ô cùng màu hoặc ô end
+                        if cell == color or (nr, nc) == end:
+                            visited.add((nr, nc))
+                            q.append((nr, nc))
+        return False
+    
+    #dùng thẳng bfs_find_path sẽ ghi nhiều log thừa,  2 hàm tương tự nhau
+    '''def path_exists(self, grid, start, end, color): #cong dung: kiem tra xem cap mau da duoc noi chua 
+        path = self.bfs_find_path(grid, start, end, color) 
+        return bool(path)'''
+
 
     
+    def generate_neighbor(self, grid, colors):
+        new_grid = copy.deepcopy(grid)
+
+        connected = []
+        unconnected = []
+
+        for color, (start, end) in self.ui.pairs.items():
+            if self.path_exists(grid, start, end, color):
+                connected.append(color)
+            else:
+                unconnected.append(color)
+
+        self.ui.log(f"🧩 Connected: {connected}, Unconnected: {unconnected}")
+
+        if not unconnected:
+            self.ui.log("🎯 Tất cả màu đã nối xong, không tạo neighbor mới.")
+            return new_grid
+
+        if not connected:
+            color_remove = None
+            self.ui.log("⚠️ Chưa có màu nào nối xong để xoá.")
+        else:
+            color_remove = random.choice(connected)
+
+        color_try = random.choice(unconnected)
+        self.ui.log(f"🔄 Đang thử xoá màu: {color_remove}, thử nối lại màu: {color_try}")
+
+        # xoá màu đã nối (giữ lại 2 đầu)
+        if color_remove:
+            start_rm, end_rm = self.ui.pairs[color_remove]
+            for r in range(self.ui.grid_size):
+                for c in range(self.ui.grid_size):
+                    if new_grid[r][c] == color_remove and (r, c) not in [start_rm, end_rm]:
+                        new_grid[r][c] = ""
+
+        # thử nối lại tất cả màu chưa nối
+        self.ui.log("🔁 Đang thử nối lại toàn bộ màu chưa nối...")
+        for color in unconnected:
+            start, end = self.ui.pairs[color]
+            path = self.bfs_find_path(new_grid, start, end, color)
+            if path:
+                self.ui.log(f"✅ Nối lại thành công {color} trong UNCONNECTED")
+                for (r, c) in path:
+                    new_grid[r][c] = color
+            else:
+                self.ui.log(f"❌ Không nối được {color}")
+
+        # thử nối lại màu đã xóa (nếu có)
+        if color_remove:
+            start_r, end_r = self.ui.pairs[color_remove]
+            path_r = self.bfs_find_path(new_grid, start_r, end_r, color_remove)
+            if path_r:
+                self.ui.log(f"🔁 Nối lại {color_remove} thành công trong CONNECTED")
+                for (r, c) in path_r:
+                    new_grid[r][c] = color_remove
+
+        return new_grid
+
+    
+
+    def hc_solver(self, grid, colors, max_steps):
+        current = copy.deepcopy(grid)
+        for color in colors:
+            start, end = self.ui.pairs[color]
+            path = self.bfs_find_path(current, start, end, color)
+            if path:
+                self.ui.paint_path(path, color)
+                for (r, c) in path:
+                    current[r][c] = color
+        best_score = self.heuristic_hc(current)
+        steps = 0
+
+        self.ui.log(f"🚀 Bắt đầu Hill-Climbing với heuristic ban đầu = {best_score}")
+
+        
+
+        while steps < max_steps and best_score > 0:
+            neighbor = self.generate_neighbor(current, colors)
+            score = self.heuristic_hc(neighbor)
+
+            self.ui.log(f"🔁 Step {steps}: neighbor_heuristic = {score}")
+
+            if score < best_score:
+                self.ui.log(f"✅ Tìm thấy trạng thái tốt hơn ({best_score} → {score})")
+                current = neighbor
+                best_score = score
+                self.ui.reset_game()
+                grid = copy.deepcopy(current)
+                for color in colors:
+                    start, end = self.ui.pairs[color]
+                    path = self.bfs_find_path(grid, start, end, color)
+                    if path:
+                        self.ui.paint_path(path, color)
+
+
+            steps += 1
+
+        if best_score == 0:
+            self.ui.log("🎉 Tất cả màu đã được nối thành công!")
+            return True, current
+        else:
+            self.ui.log(f"⛔ Dừng sau {steps} bước, chưa giải được (heuristic={best_score})")
+        
+        return False, current
