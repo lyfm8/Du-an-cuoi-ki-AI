@@ -2,6 +2,7 @@ from collections import deque
 import heapq
 import random
 import copy
+import itertools
 
 
 
@@ -210,6 +211,8 @@ class algorithm:
         return True, new_grid
     
     #----------Hill-Climbing------------
+    '''Ý tưởng: chạy thuật toán bfs nhưng không backtracking theo thứ tự trong colors list để 
+    sinh ra trường hợp xấu sau đó dùng hill_climbing để tìm lời giải cuối cùng'''
     def heuristic_hc(self, grid):
         #y tuong: so cap mau chua duoc noi
         cnt = 0
@@ -306,6 +309,10 @@ class algorithm:
     
 
     def hc_solver(self, grid, colors, max_steps):
+        # Kiểm tra stop request
+        if self.ui.stop_requested:
+            return False, None
+        
         current = copy.deepcopy(grid)
         for color in colors:
             start, end = self.ui.pairs[color]
@@ -349,3 +356,82 @@ class algorithm:
             self.ui.log(f"⛔ Dừng sau {steps} bước, chưa giải được (heuristic={best_score})")
         
         return False, current
+    
+    #-----------Backtracking + Forward Checking---------------
+    '''ý tưởng: bắt đầu theo thứ tự trong colors list nếu FC tìm ra 1 màu không thể nối thì 
+    break nhánh đấy và quay lui root mới'''
+
+    def b_fc_solver(self, grid, colors):
+        if self.ui.stop_requested:
+            return False, None
+
+        self.ui.log("🚀 Bắt đầu BFS + Forward Checking (đa root)...")
+
+
+        def forward_check(grid_local, remaining_colors):
+            for color in remaining_colors:
+                s, e = self.ui.pairs[color]
+                if not self.path_exists(grid_local, s, e, color):
+                    return False
+            return True
+
+        def backtrack(idx, grid_local, solved_paths, order):
+            if idx == len(order):
+                # chỉ vẽ khi tìm được lời giải hoàn chỉnh
+                for c, p in solved_paths.items():
+                    self.ui.paint_path(p, c)
+                self.ui.master.update()
+                return True, grid_local
+
+            color = order[idx]
+            s, e = self.ui.pairs[color]
+            self.ui.log(f"➡️ Đang nối màu {color}")
+
+            path = self.bfs_find_path(grid_local, s, e, color)
+            if not path:
+                self.ui.log(f"❌ Không tìm được đường cho {color}")
+                return False, None
+
+            new_grid = [row[:] for row in grid_local]
+            for (r, c) in path:
+                new_grid[r][c] = color
+            solved_paths[color] = path
+
+            remaining = order[idx+1:]
+            if not forward_check(new_grid, remaining):
+                # thử hoán đổi thứ tự các màu còn lại
+                for i in range(len(remaining)):
+                    new_order = order[:idx+1] + [remaining[i]] + [c for j, c in enumerate(remaining) if j != i]
+                    ok, sol = backtrack(idx+1, new_grid, solved_paths, new_order)
+                    if ok:
+                        return True, sol
+                return False, None
+
+            ok, sol = backtrack(idx+1, new_grid, solved_paths, order)
+            if ok:
+                return True, sol
+
+            del solved_paths[color]
+            return False, None
+
+        # --- thử lần lượt mỗi màu làm root ---
+        for root in colors:
+            order = [root] + [c for c in colors if c != root]
+            self.ui.log(f"\n🎯 Thử màu {root} làm root đầu tiên...")
+            solved_paths = {}
+            ok, sol = backtrack(0, [row[:] for row in grid], solved_paths, order)
+            if ok:
+                self.ui.log(f"🏆 Tìm được lời giải khi {root} làm root!")
+                return True, sol
+            else:
+                self.ui.log(f"❌ Root {root} thất bại, thử root khác...")
+
+        self.ui.log("⛔ Không có lời giải với bất kỳ root nào.")
+        return False, None
+
+
+
+
+        
+
+

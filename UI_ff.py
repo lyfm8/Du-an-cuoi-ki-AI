@@ -120,8 +120,8 @@ class UI:
         ctk.CTkButton(panel2, text="💡 Beam Search", width=180).pack(pady=7, padx=10)
 
         ctk.CTkLabel(panel2, text="CSP", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 2))
-        ctk.CTkButton(panel2, text="💡 Backtracking", width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 Forward Checking", width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 Backtracking + FC", command=lambda: self.solve_game(backtracking_fc=True), width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 ", width=180).pack(pady=7, padx=10)
         ctk.CTkButton(panel2, text="💡 AC-3", width=180).pack(pady=7, padx=10)
 
         ctk.CTkLabel(panel, text="\nSpeed", font=ctk.CTkFont(size=13, weight="bold")).pack(pady=(10, 3))
@@ -202,7 +202,8 @@ class UI:
                     time.sleep(self.speed)
         self.master.update_idletasks()
 
-    def solve_game(self, DFS=False, BFS=False, GREEDY = False, HC = False):
+    def solve_game(self, DFS=False, BFS=False, GREEDY = False, HC = False, 
+                   backtracking_fc=False):
         self.is_solving = True
         self.stop_requested = False
         start_time = time.time()
@@ -218,6 +219,8 @@ class UI:
             solved, solution = self.algo.greedy_solver(self.initial_grid, list(self.colors), alpha=1)
         if HC:
             solved, solution = self.algo.hc_solver(self.initial_grid, list(self.colors), max_steps=10)
+        if backtracking_fc:
+            solved, solution = self.algo.b_fc_solver(self.initial_grid, list(self.colors))
 
 
         elapsed = time.time() - start_time
