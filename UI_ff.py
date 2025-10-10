@@ -42,6 +42,18 @@ class UI:
             "orange": [(2, 1), (4, 1)]
         }
 
+        '''self.pairs = {
+            "green":  [(0, 0), (0, 5)],
+            "red":    [(1, 0), (5, 1)],
+            "blue":   [(2, 0), (2, 2)],
+            "yellow": [(5, 0), (3, 2)],
+            "orange": [(3, 4), (2, 5)],
+            "purple": [(5, 2), (4, 5)]
+        }'''
+
+
+
+
 
 
         self.initial_grid = [['' for _ in range(self.grid_size)] for _ in range(self.grid_size)]
@@ -120,8 +132,8 @@ class UI:
         ctk.CTkButton(panel2, text="💡 Beam Search", width=180).pack(pady=7, padx=10)
 
         ctk.CTkLabel(panel2, text="CSP", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 2))
+        ctk.CTkButton(panel2, text="💡 Backtracking", command=lambda: self.solve_game(backtracking=True), width=180).pack(pady=7, padx=10)
         ctk.CTkButton(panel2, text="💡 Backtracking + FC", command=lambda: self.solve_game(backtracking_fc=True), width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 ", width=180).pack(pady=7, padx=10)
         ctk.CTkButton(panel2, text="💡 AC-3", width=180).pack(pady=7, padx=10)
 
         ctk.CTkLabel(panel, text="\nSpeed", font=ctk.CTkFont(size=13, weight="bold")).pack(pady=(10, 3))
@@ -203,7 +215,7 @@ class UI:
         self.master.update_idletasks()
 
     def solve_game(self, DFS=False, BFS=False, GREEDY = False, HC = False, 
-                   backtracking_fc=False):
+                   backtracking_fc=False, backtracking=False):
         self.is_solving = True
         self.stop_requested = False
         start_time = time.time()
@@ -218,9 +230,11 @@ class UI:
         if GREEDY:
             solved, solution = self.algo.greedy_solver(self.initial_grid, list(self.colors), alpha=1)
         if HC:
-            solved, solution = self.algo.hc_solver(self.initial_grid, list(self.colors), max_steps=10)
+            solved, solution = self.algo.hc_solver(self.initial_grid, list(self.colors), max_steps=50)
         if backtracking_fc:
             solved, solution = self.algo.b_fc_solver(self.initial_grid, list(self.colors))
+        if backtracking:
+            solved, solution = self.algo.backtracking_solver(self.initial_grid, list(self.colors))
 
 
         elapsed = time.time() - start_time
