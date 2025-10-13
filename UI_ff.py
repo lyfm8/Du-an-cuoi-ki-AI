@@ -38,7 +38,7 @@ class UI:
             "red": [(0, 3), (0, 5)],
             "green": [(0, 4), (4, 4)],
             "blue": [(0, 0), (1, 1)],
-            "yellow": [(1, 0), (0, 2)],
+            "yellow": [(1, 0), (4,0)],
             "orange": [(2, 1), (4, 1)]
         }
 
@@ -134,7 +134,10 @@ class UI:
         ctk.CTkLabel(panel2, text="CSP", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 2))
         ctk.CTkButton(panel2, text="💡 Backtracking", command=lambda: self.solve_game(backtracking=True), width=180).pack(pady=7, padx=10)
         ctk.CTkButton(panel2, text="💡 Backtracking + FC", command=lambda: self.solve_game(backtracking_fc=True), width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 AC-3", width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 And-Or Search", command=lambda: self.solve_game(and_or=True), width=180).pack(pady=7, padx=10)
+
+
+        
 
         ctk.CTkLabel(panel, text="\nSpeed", font=ctk.CTkFont(size=13, weight="bold")).pack(pady=(10, 3))
         self.speed_slider = ctk.CTkSlider(panel, from_=0.05, to=2.0, number_of_steps=20,
@@ -215,7 +218,7 @@ class UI:
         self.master.update_idletasks()
 
     def solve_game(self, DFS=False, BFS=False, GREEDY = False, HC = False, 
-                   backtracking_fc=False, backtracking=False):
+                   backtracking_fc=False, backtracking=False, and_or=False):
         self.is_solving = True
         self.stop_requested = False
         start_time = time.time()
@@ -235,6 +238,8 @@ class UI:
             solved, solution = self.algo.b_fc_solver(self.initial_grid, list(self.colors))
         if backtracking:
             solved, solution = self.algo.backtracking_solver(self.initial_grid, list(self.colors))
+        if and_or:
+            solved, solution = self.algo.and_or_solver(self.initial_grid, list(self.colors))
 
 
         elapsed = time.time() - start_time

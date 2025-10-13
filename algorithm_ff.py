@@ -2,7 +2,7 @@ from collections import deque
 import heapq
 import random
 import copy
-import itertools
+
 
 
 
@@ -14,13 +14,13 @@ Informed: 2.Greedy, 3.A*
 
 Local & Optimization: 1.Hill-Climbing, 2.Simulated Annealing, 3.Beam Search, GA
 
-CSP: 1.Backtracking+Forward Checking, AC-3
+CSP: 1.Backtracking+Forward Checking, 
 
 Adversarial: 1.Minimax, 2.Alpha-Beta, 3.Expectiminimax (dối kháng)
 
 Planning: 2.And-Or search, 3.Belief search
 
-extra: dls, ida*, 
+extra: dls, ac-3
 
 
 '''
@@ -106,7 +106,6 @@ class algorithm:
 
                 # tô luôn đường tìm được cho cặp này
                 self.ui.paint_path(path, color)
-                self.ui.master.update()
                 
             if solved:
                 self.ui.log(f"🏆 Tìm được lời giải khi {root} làm root!")
@@ -235,7 +234,7 @@ class algorithm:
                     if (nr, nc) not in visited:
                         cell = grid[nr][nc]
                         #  chỉ đi qua ô cùng màu hoặc ô end
-                        if cell == "" or cell == color or (nr, nc) == end:
+                        if cell == color or (nr, nc) == end:
                             visited.add((nr, nc))
                             q.append((nr, nc))
         return False
@@ -406,13 +405,31 @@ class algorithm:
     #-----------Backtracking + Forward Checking---------------
     '''ý tưởng: bắt đầu theo thứ tự trong colors list nếu FC tìm ra 1 màu không thể nối thì 
     break nhánh đấy và quay lui root mới'''
-    
+    def path_possible(self, grid, start, end, color):
+        q = deque([start])
+        visited = {start}
+
+        while q:
+            r, c = q.popleft()
+            if (r, c) == end:
+                return True
+
+            for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < self.ui.grid_size and 0 <= nc < self.ui.grid_size:
+                    if (nr, nc) not in visited:
+                        cell = grid[nr][nc]
+                        #  chỉ đi qua ô cùng trong hoặc ô end
+                        if cell == '' or cell == color or (nr, nc) == end:
+                            visited.add((nr, nc))
+                            q.append((nr, nc))
+        return False
     
     def forward_check(self, grid, remaining_colors):
         for color in remaining_colors:
             s, e = self.ui.pairs[color]
             # nếu không còn đường nối khả thi cho màu này thì fail sớm
-            if not self.path_exists(grid, s, e, color):
+            if not self.path_possible(grid, s, e, color):
                 self.ui.log(f"🚫 FC: màu {color} không còn đường nối khả thi.")
                 return False
         return True
@@ -467,7 +484,96 @@ class algorithm:
         return False, None
         
 
+    
 
+    #------------And-Or Search--------------
+    '''ý tưởng: bản chất game flow free là 1 mô hình and-or search mở rộng. khi chọn 1 màu làm or node thì bắt buộc
+    các cặp màu còn lại tức and - node phải được nối thành công thì mới có lời giải'''
+
+    def or_search(self, grid, colors, visited):
+        if self.ui.stop_requested:
+            return None
+
+        if self.heuristic_hc(grid) == 0:
+            return grid
+
+        grid_key = tuple(tuple(row) for row in grid)
+        if grid_key in visited:
+            return None
+        visited.add(grid_key)
+
+        remaining = [c for c in colors if not self.path_exists(grid, *self.ui.pairs[c], c)]
+        if not remaining:
+            return grid
+
+        for color in remaining:
+            self.ui.log(f"🔹 OR-SEARCH: thử nối màu {color}")
+            start, end = self.ui.pairs[color]
+
+            possible_path = self.bfs_find_path(grid, start, end, color)
+            if not possible_path:
+                self.ui.log(f"⚠️ Không tìm được đường cho {color}, thử màu khác...")
+                continue
+
+            new_grid = [row[:] for row in grid]
+            for (r, c) in possible_path:
+                new_grid[r][c] = color
+            self.ui.paint_path(possible_path, color)
+
+            # quan trọng: truyền visited bản sao cho nhánh con (không muốn nhánh khác bị ảnh hưởng)
+            visited_copy = set(visited)
+            result = self.and_search(new_grid, colors, visited_copy)
+            if result is not None:
+                self.ui.log(f"✅ Thành công với OR-node {color}")
+                return result
+
+            self.ui.log(f"↩️ OR-SEARCH: thất bại ở {color}, backtrack...")
+
+        self.ui.log("⛔ OR-SEARCH: không tìm được lời giải ở cấp này.")
+        return None
+
+
+    def and_search(self, grid, colors, visited):
+        if self.ui.stop_requested:
+            return None
+
+        remaining = [c for c in colors if not self.path_exists(grid, *self.ui.pairs[c], c)]
+        if not remaining:
+            return grid
+
+        self.ui.log(f"🔸 AND-SEARCH: còn {len(remaining)} màu chưa nối → phải nối hết")
+
+        # thử nối từng màu còn lại theo thứ tự; nếu thành công, cập nhật grid và tiếp tục
+        for c in remaining:
+            self.ui.log(f"➡️ AND-SEARCH: cố gắng nối {c}")
+
+            # gọi or_search trên trạng thái hiện tại; truyền visited (bản sao hoặc cùng tùy chiến lược)
+            visited_copy = set(visited)
+            subplan = self.or_search(grid, colors, visited_copy)
+            if subplan is None:
+                self.ui.log(f"❌ AND thất bại tại màu {c}")
+                return None
+
+            # nếu or_search thành công, **cập nhật grid** sang subplan và tiếp tục với màu tiếp theo
+            grid = subplan
+            self.ui.log(f"✅ AND-SEARCH: đã nối {c}, tiếp tục...")
+
+        return grid
+
+
+
+    def and_or_solver(self, grid, colors):
+        if self.ui.stop_requested:
+            return False, None
+
+        self.ui.log("🚀 Bắt đầu AND-OR Search...")
+        plan = self.or_search(grid, colors, set())  # visited dùng set cho nhanh
+        if plan is not None:
+            self.ui.log("🎯 Đã tìm thấy kế hoạch thành công!")
+            return True, plan
+        else:
+            self.ui.log("⛔ Không tìm thấy lời giải.")
+            return False, None
 
 
 
