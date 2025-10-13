@@ -239,10 +239,7 @@ class algorithm:
                             q.append((nr, nc))
         return False
     
-    #dùng thẳng bfs_find_path sẽ ghi nhiều log thừa,  2 hàm tương tự nhau
-    '''def path_exists(self, grid, start, end, color): #cong dung: kiem tra xem cap mau da duoc noi chua 
-        path = self.bfs_find_path(grid, start, end, color) 
-        return bool(path)'''
+
 
 
     
@@ -547,9 +544,9 @@ class algorithm:
         for c in remaining:
             self.ui.log(f"➡️ AND-SEARCH: cố gắng nối {c}")
 
-            # gọi or_search trên trạng thái hiện tại; truyền visited (bản sao hoặc cùng tùy chiến lược)
+            # gọi or_search trên trạng thái hiện tại; truyền visited 
             visited_copy = set(visited)
-            subplan = self.or_search(grid, colors, visited_copy)
+            subplan = self.or_search(grid, [c], visited_copy)
             if subplan is None:
                 self.ui.log(f"❌ AND thất bại tại màu {c}")
                 return None
@@ -567,7 +564,7 @@ class algorithm:
             return False, None
 
         self.ui.log("🚀 Bắt đầu AND-OR Search...")
-        plan = self.or_search(grid, colors, set())  # visited dùng set cho nhanh
+        plan = self.or_search(grid, colors, set())
         if plan is not None:
             self.ui.log("🎯 Đã tìm thấy kế hoạch thành công!")
             return True, plan
