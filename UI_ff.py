@@ -14,7 +14,7 @@ class UI:
         ctk.set_default_color_theme("blue")
 
         # Kích thước cửa sổ mong muốn
-        window_width = 1100
+        window_width = 1300
         window_height = 1000
 
         # Lấy kích thước màn hình
@@ -106,6 +106,8 @@ class UI:
     def create_control_panel(self, parent):
         panel = ctk.CTkFrame(parent, width=250, corner_radius=15)
         panel2 = ctk.CTkFrame(parent, width=250, corner_radius=15)
+        panel3 = ctk.CTkFrame(parent, width=250, corner_radius=15)
+        panel3.grid(row=0, column=3, padx=15, pady=10, sticky="ns")
         panel2.grid(row=0, column=2, padx=15, pady=10, sticky="ns")
         panel.grid(row=0, column=1, sticky="ns", padx=15, pady=10)
         panel.grid_propagate(False)
@@ -122,19 +124,24 @@ class UI:
         ctk.CTkButton(panel2, text="💡 IDS", width=180).pack(pady=7, padx=10)
 
         ctk.CTkLabel(panel2, text="Informed", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 2))
-        ctk.CTkButton(panel2, text="💡 UCS", width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 UCS", command=lambda: self.solve_game(UCS=True), width=180).pack(pady=7, padx=10)
         ctk.CTkButton(panel2, text="💡 Greedy", command=lambda: self.solve_game(GREEDY=True), width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 A*", width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 A*", command=lambda: self.solve_game(Astar=True), width=180).pack(pady=7, padx=10)
 
         ctk.CTkLabel(panel2, text="Local & Optimization", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 2))
         ctk.CTkButton(panel2, text="💡 Hill-Climbing", command=lambda: self.solve_game(HC=True), width=180).pack(pady=7, padx=10)
         ctk.CTkButton(panel2, text="💡 Simulated Annealing", width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 Beam Search", width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 Beam Search", command=lambda: self.solve_game(Beam=True), width=180).pack(pady=7, padx=10)
 
         ctk.CTkLabel(panel2, text="CSP", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 2))
         ctk.CTkButton(panel2, text="💡 Backtracking", command=lambda: self.solve_game(backtracking=True), width=180).pack(pady=7, padx=10)
         ctk.CTkButton(panel2, text="💡 Backtracking + FC", command=lambda: self.solve_game(backtracking_fc=True), width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 AC-3", width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 AC-3", command=lambda: self.solve_game(AC3=True), width=180).pack(pady=7, padx=10)
+
+        ctk.CTkLabel(panel3, text="Planning", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=7, padx=10)
+        ctk.CTkButton(panel3, text="💡 And-Or Search", width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel3, text="💡 Belief Search", command=lambda: self.solve_game(Belief_Search=True), width=180).pack(pady=7, padx=10)
+        
 
         ctk.CTkLabel(panel, text="\nSpeed", font=ctk.CTkFont(size=13, weight="bold")).pack(pady=(10, 3))
         self.speed_slider = ctk.CTkSlider(panel, from_=0.05, to=2.0, number_of_steps=20,
@@ -214,8 +221,8 @@ class UI:
                     time.sleep(self.speed)
         self.master.update_idletasks()
 
-    def solve_game(self, DFS=False, BFS=False, GREEDY = False, HC = False, 
-                   backtracking_fc=False, backtracking=False):
+    def solve_game(self, DFS=False, BFS=False, UCS=False, GREEDY = False, Astar = False, HC = False, Beam = False,
+                   backtracking_fc=False, backtracking=False, AC3 = False, Belief_Search = False):
         self.is_solving = True
         self.stop_requested = False
         start_time = time.time()
@@ -227,15 +234,26 @@ class UI:
             solved, solution = self.algo.dfs_solver(self.initial_grid, list(self.colors), 0)
         if BFS:
             solved, solution = self.algo.bfs_solver(self.initial_grid, list(self.colors))
+
+        if UCS:
+            solved, solution = self.algo.ucs_solver(self.initial_grid, list(self.colors))
         if GREEDY:
             solved, solution = self.algo.greedy_solver(self.initial_grid, list(self.colors), alpha=1)
+        
+        if Astar:
+            solved, solution = self.algo.aStar_solver(self.initial_grid, list(self.colors))
         if HC:
             solved, solution = self.algo.hc_solver(self.initial_grid, list(self.colors), max_steps=50)
+        if Beam:
+            solved, solution = self.algo.beamSearch(self.initial_grid, list(self.colors), k = 2)
         if backtracking_fc:
             solved, solution = self.algo.b_fc_solver(self.initial_grid, list(self.colors))
         if backtracking:
             solved, solution = self.algo.backtracking_solver(self.initial_grid, list(self.colors))
-
+        if AC3:
+            solved, solution = self.algo.csp_ac3_solver(self.initial_grid, list(self.colors))
+        if Belief_Search:
+            solved, solution = self.algo.beliefSearch_bfs_solver(self.initial_grid, list(self.colors))
 
         elapsed = time.time() - start_time
         self.timer_label.configure(text=f"⏱ {elapsed:.2f}s")
