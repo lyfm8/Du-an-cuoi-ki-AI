@@ -1,5 +1,7 @@
 import tkinter as tk
 import time
+from collections import deque
+
 from algorithm_ff import algorithm
 import customtkinter as ctk
 
@@ -26,8 +28,8 @@ class UI:
         y = (screen_height - window_height) // 2
         master.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
-        self.grid_size = 6
-        self.colors = ["red", "green", "blue", "yellow", "orange"]
+        self.grid_size = 10
+        self.colors = ["red", "green", "blue", "yellow", "orange", "cyan", "violet", "crimson"]
         self.cell_size = 70
         self.speed = 0.2
         self.is_solving = False # kt có đang giải không
@@ -35,11 +37,14 @@ class UI:
 
         # ví dụ pairs
         self.pairs = {
-            "red": [(0, 3), (0, 5)],
-            "green": [(0, 4), (4, 4)],
-            "blue": [(0, 0), (1, 1)],
-            "yellow": [(1, 0), (0, 2)],
-            "orange": [(2, 1), (4, 1)]
+            "red": [(3, 8), (5, 0)],
+            "green": [(0, 9), (8, 5)],
+            "blue": [(5, 1), (6, 6)],
+            "yellow": [(5, 3), (3, 5)],
+            "orange": [(2, 2), (4, 5)],
+            "cyan": [(2, 6), (5, 4)],
+            "violet": [(0, 7), (7, 7)],
+            "crimson": [(1, 7), (7, 2)]
         }
 
 
@@ -106,26 +111,26 @@ class UI:
         ctk.CTkLabel(panel2, text="Uninformed", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 2))
 
         ctk.CTkButton(panel2, text="🌳 DFS", command=lambda: self.solve_game(DFS=True), width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="🌊 BFS", command=lambda: self.solve_game(BFS=True), width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 IDS", width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="🌊 BFS", width=180, state="disabled").pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 IDS", command=lambda: self.solve_game(IDS=True),width=180).pack(pady=7, padx=10)
 
         ctk.CTkLabel(panel2, text="Informed", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 2))
-        ctk.CTkButton(panel2, text="💡 UCS", width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 Greedy", width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 A*", width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 UCS", width=180, state="disabled").pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 Greedy", width=180, state="disabled").pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 A*", width=180, state="disabled").pack(pady=7, padx=10)
 
         ctk.CTkLabel(panel2, text="Local & Optimization", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 2))
-        ctk.CTkButton(panel2, text="💡 Hill-Climbing", width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 Simulated Annealing", width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 Beam Search", width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 Hill-Climbing", width=180, state="disabled").pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="🔥 Simulated Annealing", command=lambda: self.solve_game(SA=True), width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 Beam Search", width=180, state="disabled").pack(pady=7, padx=10)
 
         ctk.CTkLabel(panel2, text="CSP", font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(10, 2))
-        ctk.CTkButton(panel2, text="💡 Backtracking", width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 Forward Checking", width=180).pack(pady=7, padx=10)
-        ctk.CTkButton(panel2, text="💡 AC-3", width=180).pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 Backtracking", width=180, state="disabled").pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 Forward Checking", width=180, state="disabled").pack(pady=7, padx=10)
+        ctk.CTkButton(panel2, text="💡 AC-3", width=180, state="disabled").pack(pady=7, padx=10)
 
         ctk.CTkLabel(panel, text="\nSpeed", font=ctk.CTkFont(size=13, weight="bold")).pack(pady=(10, 3))
-        self.speed_slider = ctk.CTkSlider(panel, from_=0.05, to=2.0, number_of_steps=20,
+        self.speed_slider = ctk.CTkSlider(panel, from_=0.1, to=1.0, number_of_steps=20,
                                           command=self.update_speed, width=180)
         self.speed_slider.set(self.speed)
         self.speed_slider.pack(pady=5)
@@ -202,7 +207,7 @@ class UI:
                     time.sleep(self.speed)
         self.master.update_idletasks()
 
-    def solve_game(self, DFS=False, BFS=False):
+    def solve_game(self, DFS=False, BFS=False, IDS=False, SA=False):
         self.is_solving = True
         self.stop_requested = False
         start_time = time.time()
@@ -211,19 +216,32 @@ class UI:
         self.master.update_idletasks()
 
         if DFS:
-            solved, solution = self.algo.dfs_solver(self.initial_grid, list(self.colors), 0)
-        if BFS:
+            self.log("🌳 Bắt đầu tìm kiếm bằng DFS (Stack)...")
+            solved, solution = self.algo.DFSSolver(self.initial_grid, list(self.colors))
+        elif BFS:
             solved, solution = self.algo.bfs_solver(self.initial_grid, list(self.colors))
+        elif IDS:
+            self.log("💡 Bắt đầu tìm kiếm bằng IDS...")
+            solved, solution = self.algo.IDSSolver(self.initial_grid, list(self.colors))
+        elif SA:
+            self.log("🔥 Bắt đầu giải bằng Simulated Annealing...")
+            solved, solution = self.algo.SASolver(self.initial_grid, list(self.colors))
 
         elapsed = time.time() - start_time
         self.timer_label.configure(text=f"⏱ {elapsed:.2f}s")
 
         if self.stop_requested:
             self.status_label.configure(text="Đã dừng!", text_color="orange")
+            self.log("🛑 Thuật toán đã dừng theo yêu cầu.")
+
         elif solved:
-            self.status_label.configure(text="Đã giải xong!", text_color="lightblue" if ctk.get_appearance_mode() == "Dark" else "blue")
+            self.status_label.configure(text="Đã giải xong!", text_color="lightgreen")
+            self.log(f"🎉 Tìm thấy lời giải trong {elapsed:.2f} giây!")
+            self.log("🎨 Đang vẽ lại kết quả cuối cùng...")
+            self.redraw_solution(solution)
         else:
             self.status_label.configure(text="Không tìm thấy lời giải.", text_color="red")
+            self.log("💔 Không tìm thấy lời giải cho bài toán.")
 
         self.is_solving = False
 
@@ -257,21 +275,115 @@ class UI:
             self.master.update()
             time.sleep(self.speed)
 
-
-
     def reset_game(self):
-        # Dừng quá trình giải nếu đang chạy
         if self.is_solving:
             self.stop_requested = True
-            time.sleep(0.1)
+            self.master.after(100, self._perform_reset)
+        else:
+            self._perform_reset()
+
+
+    def redraw_solution(self, solution_grid):
+        temp_speed = self.speed
+        self.speed = 0.01
+
+        self.canvas.delete("path_line_viz")
+        for r in range(self.grid_size):
+            for c in range(self.grid_size):
+                self.canvas.itemconfig(self.rects[(r, c)], fill="white")
+
+        for color in self.colors:
+            if self.stop_requested: break
+            start_node, end_node = self.pairs[color]
+
+            q = deque([[start_node]])
+            path_found = []
+            visited_path = {start_node}
+
+            while q:
+                path = q.popleft()
+                r, c = path[-1]
+
+                if (r, c) == end_node:
+                    path_found = path
+                    break
+
+                for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                    nr, nc = r + dr, c + dc
+                    if 0 <= nr < self.grid_size and 0 <= nc < self.grid_size:
+                        if solution_grid[nr][nc] == color and (nr, nc) not in visited_path:
+                            new_path = list(path)
+                            new_path.append((nr, nc))
+                            q.append(new_path)
+                            visited_path.add((nr, nc))
+            if path_found:
+                self.paint_path(path_found, color)
+
+        self.mark_start_end()
+        self.speed = temp_speed
+
+    def _perform_reset(self):
+        """Hàm reset thực sự sau khi đã dừng thuật toán"""
+        self.stop_requested = False
+        self.is_solving = False
 
         # Xóa tất cả các đường vẽ
         for color in self.colors:
             self.canvas.delete(f"path_{color}")
+        self.canvas.delete("path_line_viz")
 
+        # Tô lại màu nền trắng và vẽ lại các điểm start/end
+        for r in range(self.grid_size):
+            for c in range(self.grid_size):
+                self.canvas.itemconfig(self.rects[(r, c)], fill="white")
+
+        # <<< SỬA: Bỏ tô màu ô, chỉ vẽ lại điểm tròn >>>
         self.mark_start_end()
-        self.status_label.configure(text="Sẵn sàng...", text_color="lightblue" if ctk.get_appearance_mode() == "Dark" else "blue")
+
+        self.status_label.configure(text="Sẵn sàng...",
+                                    text_color="lightblue" if ctk.get_appearance_mode() == "Dark" else "blue")
         self.timer_label.configure(text="⏱ 0.0s")
-        self.stop_requested = False
+        self.log("\n🔄 Đã reset trò chơi.")
+
+    def visualizeSearchState(self, grid_state):
+        self.canvas.delete("path_line_viz")
+        for r in range(self.grid_size):
+            for c in range(self.grid_size):
+                self.canvas.itemconfig(self.rects[(r, c)], fill="white")
+
+        for color in self.colors:
+            start_node, _ = self.pairs[color]
+            path = [start_node]
+            visited = {start_node}
+            curr_r, curr_c = start_node
+            while True:
+                found_next = False
+                for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                    nr, nc = curr_r + dr, curr_c + dc
+                    if 0 <= nr < self.grid_size and 0 <= nc < self.grid_size and (nr, nc) not in visited:
+                        if grid_state[nr][nc] == color:
+                            path.append((nr, nc))
+                            visited.add((nr, nc))
+                            curr_r, curr_c = nr, nc
+                            found_next = True
+                            break
+                if not found_next:
+                    break
+            if len(path) > 1:
+                cell_size = self.cell_size
+                for i in range(len(path) - 1):
+                    r1, c1 = path[i]
+                    r2, c2 = path[i + 1]
+                    x1 = c1 * cell_size + cell_size // 2
+                    y1 = r1 * cell_size + cell_size // 2
+                    x2 = c2 * cell_size + cell_size // 2
+                    y2 = r2 * cell_size + cell_size // 2
+                    self.canvas.create_line(x1, y1, x2, y2,
+                                            fill=color, width=cell_size // 1.6,
+                                            capstyle="round", tags=("path_line_viz",))
+        self.mark_start_end()
+        self.master.update()
+        time.sleep(self.speed)
+
 
 
