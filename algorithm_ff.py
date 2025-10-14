@@ -1,9 +1,7 @@
 from collections import deque
-from collections import defaultdict
 import heapq
 import random
 import copy
-import itertools
 import time
 
 
@@ -32,128 +30,7 @@ class algorithm:
         self.ui=ui
 
 # Uninformed ----------------------------------------
-    # ---------- DFS ----------
-    def dfs_solver(self, grid, colors, idx):
-        # Kiểm tra stop request
-        if self.ui.stop_requested:
-            return False, None
 
-        if idx == len(colors):
-            return True, grid
-        color = colors[idx]
-        start, end = self.ui.pairs[color]
-        self.ui.log(f"➡️ Đang xử lý màu {color.upper()} từ {start} đến {end}")
-
-        def backtrack(path, visited):
-            # Kiểm tra stop request
-            if self.ui.stop_requested:
-                return False, None
-
-
-            r, c = path[-1]
-            if (r, c) == end:
-                new_grid = [row[:] for row in grid]
-                for (pr, pc) in path:
-                    new_grid[pr][pc] = color
-                self.ui.log(f"✅ Tìm thấy đường cho màu {color}")
-                ok, res = self.dfs_solver(new_grid, colors, idx+1)
-                if ok:
-                    # Vẽ đường hoàn chỉnh cho màu này
-                    self.ui.paint_path(path, colors[idx])
-                    return True, res
-
-                return False, None
-
-            for dr, dc in [(0,1),(0,-1),(1,0),(-1,0)]:
-                nr, nc = r+dr, c+dc
-                if 0 <= nr < self.ui.grid_size and 0 <= nc < self.ui.grid_size:
-                    if (nr, nc) not in visited and (grid[nr][nc] == '' or (nr, nc) == end):
-                        visited.add((nr, nc))
-                        path.append((nr, nc))
-                        ok, res = backtrack(path, visited)
-                        if ok: return True, res
-                        path.pop()
-                        visited.remove((nr, nc))
-
-            return False, None
-
-        return backtrack([start], {start})
-
-    # ---------- BFS ----------
-    # Ý tưởng: lấy lần lượt từng màu trong colors list làm root
-    def bfs_solver(self, grid, colors):
-        if self.ui.stop_requested:
-            return False, None
-        
-        if not colors:
-            return True, grid
-        
-        for root in colors:
-            self.ui.log(f"➡️Thử root: {root}")
-            order = [root] + [c for c in colors if c != root]
-            new_grid = [row[:] for row in grid]
-            solved = True
-            self.ui.reset_game()
-            for color in order:
-                start, end  = self.ui.pairs[color]
-                self.ui.log(f"➡️ Tìm đường cho màu {color} bằng BFS...")
-                path = self.bfs_find_path(new_grid, start, end, color)
-                if not path:
-                    self.ui.log(f"⚠️ Không tìm được đường cho màu {color}")
-                    solved = False
-                    continue
-                
-                for (r, c) in path:
-                    new_grid[r][c] = color
-
-                # tô luôn đường tìm được cho cặp này
-                self.ui.paint_path(path, color)
-                self.ui.master.update()
-                
-            if solved:
-                self.ui.log(f"🏆 Tìm được lời giải khi {root} làm root!")
-                return True, new_grid
-            
-        self.ui.log("⛔ Không có lời giải với bất kỳ root nào.")
-        return False, None
-
-        
-
-    def bfs_find_path(self, grid, start, end, color):
-        q = deque([start])
-        visited = {start: None}
-        while q:
-            # Kiểm tra stop request
-            if self.ui.stop_requested:
-                return False, None
-
-            r, c = q.popleft()
-            # highlight node đang xét
-            if (r, c) not in [start, end]:
-                self.ui.paint_cell(r, c, "lightblue")
-                self.ui.log(f"🔹 Mở rộng {color} tại ({r},{c})")
-
-
-            if (r, c) == end:
-                # reconstruct path
-                path = []
-                cur = end
-                while cur is not None:
-                    path.append(cur)
-                    cur = visited[cur]
-                path.reverse()
-                return path
-
-            # duyệt 4 hướng
-            for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-                nr, nc = r + dr, c + dc
-                if 0 <= nr < self.ui.grid_size and 0 <= nc < self.ui.grid_size:
-                    if (nr, nc) not in visited:
-                        if grid[nr][nc] == "" or (nr, nc) == end:
-                            visited[(nr, nc)] = (r, c)
-                            q.append((nr, nc))
-        return None
-    
 # Informed ----------------------------------------   
     #----------UCS----------
     def cost(self, value):
@@ -262,59 +139,6 @@ class algorithm:
     
         return None
     
-    #----------GREEDY----------
-    def heuristic_greedy(self, grid, color, alpha):
-        (sx, sy), (ex, ey) = self.ui.pairs[color]
-        # yeu to 1_manhattan: |x1-x2| + |y1-y2|
-        h1 = abs(sx - ex) + abs(sy - ey)
-
-        # yeu to 2: tinh cac diem mau khac lien ke mau dang xet
-        h2 = 0
-        for (r, c) in [(sx, sy), (ex, ey)]:
-            for dr, dc in [(-1,0), (1,0), (0,-1), (0,1)]:
-                nr, nc = r + dr, c + dc
-                if 0 <= nr < self.ui.grid_size and 0 <= nc < self.ui.grid_size:
-                    cell = grid[nr][nc]
-                    if cell != "" and cell != color:
-                        h2 += 1
-
-        return h1 + alpha * h2
-
-    
-    def greedy_solver(self, grid, colors, alpha):
-        # Kiểm tra stop request
-        if self.ui.stop_requested:
-            return False, None
-
-        if not colors:
-            return True, grid
-        
-        hq = []
-
-        for color in colors:
-            cost = self.heuristic_greedy(grid, color, alpha)
-            heapq.heappush(hq, (cost, color))
-
-        new_grid = [row[:] for row in grid]
-        solved_colors = []
-
-        while hq:
-            cost, color = heapq.heappop(hq)
-            start, end = self.ui.pairs[color]
-            self.ui.log(f"➡️ Tìm đường cho màu {color} (h={cost})")
-
-            path = self.bfs_find_path(new_grid, start, end, color)
-            if not path:
-                self.ui.log(f"⚠️Không tìm được đường cho màu {color}")
-                continue
-
-            # tô màu và cập nhật grid
-            for (r, c) in path:
-                new_grid[r][c] = color
-            self.ui.paint_path(path, color)
-            solved_colors.append(color)
-
-        return True, new_grid
     
     #----------A*----------
     def aStar_solver(self, grid, colors):
@@ -438,42 +262,6 @@ class algorithm:
                             heapq.heappush(pq, (new_f_cost, new_g_cost, new_h_cost, (nr, nc)))
     
         return None
-    
-    #----------Hill-Climbing------------
-    '''Ý tưởng: chạy thuật toán bfs nhưng không backtracking theo thứ tự trong colors list để 
-    sinh ra trường hợp xấu sau đó dùng hill_climbing để tìm lời giải cuối cùng'''
-    def heuristic_hc(self, grid):
-        #y tuong: so cap mau chua duoc noi
-        cnt = 0
-        for color, (start, end) in self.ui.pairs.items():
-            if self.path_exists(grid, start, end, color) == False:
-                cnt += 1
-        return cnt
-    
-    def path_exists(self, grid, start, end, color):
-        q = deque([start])
-        visited = {start}
-
-        while q:
-            r, c = q.popleft()
-            if (r, c) == end:
-                return True
-
-            for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-                nr, nc = r + dr, c + dc
-                if 0 <= nr < self.ui.grid_size and 0 <= nc < self.ui.grid_size:
-                    if (nr, nc) not in visited:
-                        cell = grid[nr][nc]
-                        #  chỉ đi qua ô cùng màu hoặc ô end
-                        if cell == "" or cell == color or (nr, nc) == end:
-                            visited.add((nr, nc))
-                            q.append((nr, nc))
-        return False
-    
-    #dùng thẳng bfs_find_path sẽ ghi nhiều log thừa,  2 hàm tương tự nhau
-    '''def path_exists(self, grid, start, end, color): #cong dung: kiem tra xem cap mau da duoc noi chua 
-        path = self.bfs_find_path(grid, start, end, color) 
-        return bool(path)'''
 
     #----------Beam Search------------
     def beamSearch(self, grid, colors, k):
@@ -581,224 +369,6 @@ class algorithm:
 
         return None
 
-    def generate_neighbor(self, grid):
-        new_grid = copy.deepcopy(grid)
-        paths = {}
-
-        connected = []
-        unconnected = []
-
-        for color, (start, end) in self.ui.pairs.items():
-            if self.path_exists(grid, start, end, color):
-                connected.append(color)
-            else:
-                unconnected.append(color)
-
-        self.ui.log(f"🧩 Connected: {connected}, Unconnected: {unconnected}")
-
-        if not unconnected:
-            self.ui.log("🎯 Tất cả màu đã nối xong, không tạo neighbor mới.")
-            return new_grid
-
-        if not connected:
-            color_remove = None
-            self.ui.log("⚠️ Chưa có màu nào nối xong để xoá.")
-        else:
-            color_remove = random.choice(connected)
-
-        self.ui.log(f"🔄 Đang thử xoá màu: {color_remove}")
-
-        # xoá màu đã nối (giữ lại 2 đầu)
-        if color_remove:
-            self.ui.log(f"💥 Đang thử xoá màu: {color_remove}")
-            start_rm, end_rm = self.ui.pairs[color_remove]
-            old_path = self.bfs_find_path(grid, start_rm, end_rm, color_remove)
-            if old_path:
-                paths[color_remove] = old_path  # lưu path trước khi xoá
-            
-            for r in range(self.ui.grid_size):
-                for c in range(self.ui.grid_size):
-                    if new_grid[r][c] == color_remove and (r, c) not in [start_rm, end_rm]:
-                        new_grid[r][c] = ""
-
-        # thử nối lại tất cả màu chưa nối
-        self.ui.log("🔁 Đang thử nối lại toàn bộ màu chưa nối...")
-        for color in unconnected:
-            start, end = self.ui.pairs[color]
-            path = self.bfs_find_path(new_grid, start, end, color)
-            if path:
-                paths[color] = path  # 🔹 lưu path nối mới
-                self.ui.log(f"✅ Nối lại thành công {color} trong UNCONNECTED")
-                for (r, c) in path:
-                    new_grid[r][c] = color
-            else:
-                self.ui.log(f"❌ Không nối được {color}")
-
-        # thử nối lại màu đã xóa (nếu có)
-        if color_remove:
-            start_r, end_r = self.ui.pairs[color_remove]
-            path_r = self.bfs_find_path(new_grid, start_r, end_r, color_remove)
-            if path_r:
-                paths[color_remove] = path_r  # 🔹 ghi đè path mới nếu nối lại được
-                self.ui.log(f"🔁 Nối lại thành công {color_remove} trong CONNECTED")
-                for (r, c) in path_r:
-                    new_grid[r][c] = color_remove
-
-        return new_grid, paths
-
-    
-
-    def hc_solver(self, grid, colors, max_steps):
-        # Kiểm tra stop request
-        if self.ui.stop_requested:
-            return False, None
-        
-        current = copy.deepcopy(grid)
-        for color in colors:
-            start, end = self.ui.pairs[color]
-            path = self.bfs_find_path(current, start, end, color)
-            if path:
-                self.ui.paint_path(path, color)
-                for (r, c) in path:
-                    current[r][c] = color
-        best_score = self.heuristic_hc(current)
-        best_paths = {}
-        steps = 0
-
-        self.ui.log(f"🚀 Bắt đầu Hill-Climbing với heuristic ban đầu = {best_score}")
-
-        
-
-        while steps < max_steps and best_score > 0:
-            neighbor, neighbor_paths = self.generate_neighbor(current)
-            score = self.heuristic_hc(neighbor)
-
-            self.ui.log(f"🔁 Step {steps}: neighbor_heuristic = {score}")
-
-            if score < best_score:
-                self.ui.log(f"✅ Tìm thấy trạng thái tốt hơn ({best_score} → {score})")
-                current = neighbor
-                best_score = score
-                best_paths = neighbor_paths
-
-                grid = copy.deepcopy(current)
-                
-                # vẽ trực tiếp path tốt nhất đã lưu trong best_paths
-                for color, path in best_paths.items():
-                    self.ui.paint_path(path, color)
-
-
-
-            steps += 1
-
-        
-
-        if best_score == 0:
-            self.ui.log("🎉 Tất cả màu đã được nối thành công!")
-            return True, current
-        else:
-            self.ui.log(f"⛔ Dừng sau {steps} bước, chưa giải được (heuristic={best_score})")
-        
-        return False, current
-    
-    #-----------Backtracking---------------
-    '''ý tưởng: duyệt tuần tự theo colors list, thử nối từng màu,
-    nếu thất bại thì quay lui và thử root khác'''
-
-    def backtracking_solver(self, grid, colors):
-        # Kiểm tra stop request
-        if self.ui.stop_requested:
-            return False, None
-
-        if not colors:
-            return True, grid
-
-        for i, color in enumerate(colors):
-            start, end = self.ui.pairs[color]
-            self.ui.log(f"➡️ Tìm đường cho màu {color} bằng BFS...")
-            path = self.bfs_find_path(grid, start, end, color)
-            if not path:
-                self.ui.log(f"⚠️ Không tìm được đường cho màu {color}")
-                continue
-
-            new_grid = [row[:] for row in grid]
-            for (r, c) in path:
-                new_grid[r][c] = color
-
-            # tô luôn đường tìm được cho cặp này
-            self.ui.paint_path(path, color)
-
-            remaining = colors[:i] + colors[i+1:]
-            ok, solution = self.backtracking_solver(new_grid, remaining)
-            if ok:
-                return True, solution
-            
-            self.ui.log(f"↩️ Backtrack: hủy đường {color}")
-        return False, None
-
-    
-    #-----------Backtracking + Forward Checking---------------
-    '''ý tưởng: bắt đầu theo thứ tự trong colors list nếu FC tìm ra 1 màu không thể nối thì 
-    break nhánh đấy và quay lui root mới'''
-    
-    
-    def forward_check(self, grid, remaining_colors):
-        for color in remaining_colors:
-            s, e = self.ui.pairs[color]
-            # nếu không còn đường nối khả thi cho màu này thì fail sớm
-            if not self.path_exists(grid, s, e, color):
-                self.ui.log(f"🚫 FC: màu {color} không còn đường nối khả thi.")
-                return False
-        return True
-    
-
-    def b_fc_solver(self, grid, colors):
-            # kiểm tra stop request
-        if self.ui.stop_requested:
-            return False, None
-
-        # nếu không còn màu nào => đã giải xong
-        if not colors:
-            return True, grid
-
-        for i, color in enumerate(colors):
-            start, end = self.ui.pairs[color]
-            self.ui.log(f"➡️ Tìm đường cho màu {color} bằng BFS...")
-            path = self.bfs_find_path(grid, start, end, color)
-            if not path:
-                self.ui.log(f"⚠️ Không tìm được đường cho màu {color}")
-                continue
-
-            new_grid = [row[:] for row in grid]
-            for (r, c) in path:
-                new_grid[r][c] = color
-
-            # tô luôn đường tìm được cho cặp này
-            self.ui.paint_path(path, color)
-
-            # 🔹 forward checking: kiểm tra xem các cặp còn lại có còn khả năng nối không
-            remaining = colors[:i] + colors[i+1:]
-            # hàm forward checking: kiểm tra xem các cặp còn lại có còn khả năng nối không
-            
-            if not self.forward_check(new_grid, remaining):
-                self.ui.log(f"❌ FC phát hiện bế tắc sau khi nối {color}, backtrack sớm.")
-                for c in colors:
-                    if c == color:
-                        break
-                    s2, e2 = self.ui.pairs[c]
-                    p2 = self.bfs_find_path(grid, s2, e2, c)
-                    if p2:
-                        self.ui.paint_path(p2, c)
-                continue  # thử nhánh khác
-
-            # nếu FC hợp lệ thì tiếp tục đệ quy cho phần còn lại
-            ok, solution = self.b_fc_solver(new_grid, remaining)
-            if ok:
-                return True, solution
-
-            self.ui.log(f"↩️ Backtrack: hủy đường {color}")
-
-        return False, None
         
     def csp_ac3_solver(self, grid, colors):
         # kiểm tra stop request
@@ -1128,9 +698,11 @@ class algorithm:
     
     def reconstruct_path_from_actions(self, start, actions, grid, end):
         """
-        Từ start và chuỗi actions, tạo lại path thực tế.
-        Chọn một state bất kỳ từ belief cuối và trace ngược.
+        Reconstruct path từ action sequence.
+        - Loại bỏ các ô trùng lặp (chu trình)
+        - Nếu có nhiều path, chọn shortest path bằng BFS
         """
+        # Bước 1: Follow actions để tạo path thô (có thể có chu trình)
         path = [start]
         r, c = start
         
@@ -1143,11 +715,65 @@ class algorithm:
                 (grid[nr][nc] == "" or (nr, nc) == end)):
                 r, c = nr, nc
                 path.append((r, c))
-            # Nếu không đi được, giữ nguyên (state không đổi)
+            # Nếu không đi được, giữ nguyên (không thêm vào path)
         
-        # Kiểm tra có đến đích không
-        if path[-1] == end:
-            return path
+        # Bước 2: Kiểm tra có đến đích không
+        if path[-1] != end:
+            # Nếu không đến được end, dùng BFS tìm path
+            return self.bfs_shortest_path(grid, start, end)
+        
+        # Bước 3: Loại bỏ chu trình bằng cách chỉ giữ lần xuất hiện cuối
+        seen = {}
+        for i, pos in enumerate(path):
+            seen[pos] = i  # Lưu index xuất hiện cuối cùng
+        
+        # Tạo path mới không có chu trình
+        cleaned_path = []
+        visited_in_clean = set()
+        
+        for pos in path:
+            if pos not in visited_in_clean:
+                cleaned_path.append(pos)
+                visited_in_clean.add(pos)
+        
+        # Bước 4: Kiểm tra cleaned_path có hợp lệ không (các ô liên tiếp)
+        valid = True
+        for i in range(len(cleaned_path) - 1):
+            r1, c1 = cleaned_path[i]
+            r2, c2 = cleaned_path[i + 1]
+            # Kiểm tra 2 ô có kề nhau không
+            if abs(r1 - r2) + abs(c1 - c2) != 1:
+                valid = False
+                break
+        
+        if valid:
+            return cleaned_path
+        else:
+            # Nếu path bị đứt sau khi loại chu trình, dùng BFS
+            return self.bfs_shortest_path(grid, start, end)
+
+    
+    def bfs_shortest_path(self, grid, start, end):
+        #Tìm shortest path bằng BFS thông thường
+        
+        q = deque([(start, [start])])
+        visited = {start}
+        
+        while q:
+            (r, c), path = q.popleft()
+            
+            if (r, c) == end:
+                return path
+            
+            for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                nr, nc = r + dr, c + dc
+                
+                if (0 <= nr < self.ui.grid_size and 
+                    0 <= nc < self.ui.grid_size and
+                    (nr, nc) not in visited and
+                    (grid[nr][nc] == "" or (nr, nc) == end)):
+                    
+                    visited.add((nr, nc))
+                    q.append(((nr, nc), path + [(nr, nc)]))
         
         return None
-    
