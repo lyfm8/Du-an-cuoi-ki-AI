@@ -1034,10 +1034,12 @@ class algorithm:
             new_grid = [row[:] for row in grid]
             solved = True
             self.ui.reset_game()
+
             for color in order:
                 start, end  = self.ui.pairs[color]
                 self.ui.log(f"➡️ Tìm đường cho màu {color} bằng BFS...")
                 path = self.belief_bfs_find_path(new_grid, start, end, color)
+
                 if not path:
                     self.ui.log(f"⚠️ Không tìm được đường cho màu {color}")
                     solved = False
@@ -1060,73 +1062,92 @@ class algorithm:
     def belief_bfs_find_path(self, grid, start, end, color):
         # Khởi tạo belief start gồm start và các ô lân cận
         # duyệt 4 hướng
-        prev = defaultdict(list)
-        prev[start] = [None]
-        belief_start = [(start),]
+        belief_start = {(start)}
         r, c = start
         for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
             nr, nc = r + dr, c + dc
-            if 0 <= nr < self.ui.grid_size and 0 <= nc < self.ui.grid_size:
-                if grid[nr][nc] == "" or (nr, nc) == end:
-                    belief_start.append((nr, nc))
-                    prev[(nr, nc)] = [start]
+            if (0 <= nr < self.ui.grid_size and 
+                0 <= nc < self.ui.grid_size and
+                (grid[nr][nc] == "" or (nr, nc) == end)):
+                belief_start.add((nr, nc))
                     
         belief_start = frozenset(belief_start)
-        q = deque([belief_start])
-        visited = set(belief_start)
+
+        q = deque([(belief_start, [])])     # (belief, actions)
+        visited = {belief_start}
+
+        # Lưu parent để reconstruct path
+        parent = {belief_start: (None, None)}  # belief -> (parent_belief, action)
+    
+        # 4 hành động: lên, xuống, trái, phải
+        actions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        action_names = ['UP', 'DOWN', 'LEFT', 'RIGHT']
 
         while q:
             # Kiểm tra stop request
             if self.ui.stop_requested:
                 return False, None
 
-            belief = q.popleft()
+            curBelief, action_seq = q.popleft()
 
-            if all(state == end for state in belief):
-                all_paths = []
+            # Kiểm tra goal: TẤT CẢ states trong belief đều là end
+            if all(state == end for state in curBelief):
+                # Reconstruct path từ action sequence
+                path = self.reconstruct_path_from_actions(start, action_seq, grid, end)
+                if path:
+                    self.ui.log(f"✓ Tìm được path sau {len(action_seq)} actions: {path}")
+                    return path
 
-                def reconstruct(cur, path):
-                    """Đệ quy lần ngược prev để tạo tất cả các path hợp lệ."""
-                    if cur == start:  # tới gốc
-                        all_paths.append(path[::-1])      # đảo ngược
-                        return
-                    for p in prev[cur]:
-                        reconstruct(p, path + [p])
-
-                # Gọi cho mọi state == end trong belief
-                for state in belief:
-                    if state == end:
-                        reconstruct(state, [state])
-
-                # Chọn path ngắn nhất
-                if not all_paths:
-                    return None
-                all_paths.sort(key=len)
-                self.ui.log(f"Tìm được path{all_paths[0]}")
-                return all_paths[0]
-
-            nextBelief = []
-            pState = []
-            for state in belief:
-                r, c = state
-                # duyệt 4 hướng
-                for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            # Sinh belief : thử từng action
+            for action, action_name in zip(actions, action_names):
+                dr, dc = action
+                next_belief = set()
+            
+                # Áp dụng action cho TẤT CẢ states trong belief
+                for state in curBelief:
+                    r, c = state
                     nr, nc = r + dr, c + dc
-                    if 0 <= nr < self.ui.grid_size and 0 <= nc < self.ui.grid_size:
-                        if grid[nr][nc] == "" or (nr, nc) == end:
-                            if (nr, nc) not in visited:
-                                nextState = (nr, nc)
-                                nextBelief.append(nextState)
-                                pState.append(state)                     
+                    
+                    # Kiểm tra valid
+                    if (0 <= nr < self.ui.grid_size and 
+                        0 <= nc < self.ui.grid_size and
+                        (grid[nr][nc] == "" or (nr, nc) == end)):
+                        next_belief.add((nr, nc))
+                    else:
+                        # Nếu không đi được, giữ nguyên vị trí
+                        next_belief.add(state)
+                next_belief = frozenset(next_belief)
             
-            for state, prevState in zip(nextBelief, pState):
-                prev[state].append(prevState)
-                
-            nextBelief = frozenset(nextBelief)
+                # Thêm vào queue nếu chưa thăm
+                if next_belief not in visited:
+                    visited.add(next_belief)
+                    q.append((next_belief, action_seq + [action]))
+                    parent[next_belief] = (curBelief, action)
+    
+        return None
+    
+    def reconstruct_path_from_actions(self, start, actions, grid, end):
+        """
+        Từ start và chuỗi actions, tạo lại path thực tế.
+        Chọn một state bất kỳ từ belief cuối và trace ngược.
+        """
+        path = [start]
+        r, c = start
+        
+        for dr, dc in actions:
+            nr, nc = r + dr, c + dc
             
-            if nextBelief not in visited:
-                visited.add(nextBelief)
-                q.append(nextBelief)
-
+            # Kiểm tra có thể đi được không
+            if (0 <= nr < self.ui.grid_size and 
+                0 <= nc < self.ui.grid_size and
+                (grid[nr][nc] == "" or (nr, nc) == end)):
+                r, c = nr, nc
+                path.append((r, c))
+            # Nếu không đi được, giữ nguyên (state không đổi)
+        
+        # Kiểm tra có đến đích không
+        if path[-1] == end:
+            return path
+        
         return None
     
