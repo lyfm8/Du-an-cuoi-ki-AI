@@ -24,7 +24,7 @@ Các thuật toán không sử dụng thông tin về khoảng cách hay chi ph�
 - **Ưu điểm:** Bộ nhớ nhỏ, có thể tìm nghiệm nhanh nếu gần gốc.  
 - **Nhược điểm:** Dễ kẹt trong vòng lặp, không đảm bảo đường ngắn nhất.
 
-![DFS Demo](./demo_dfs.gif)
+![DFS Demo](./gif/demo_dfs.gif)
 
 ---
 
@@ -33,7 +33,7 @@ Các thuật toán không sử dụng thông tin về khoảng cách hay chi ph�
 - **Ưu điểm:** Luôn tìm được đường đi ngắn nhất.  
 - **Nhược điểm:** Tốn bộ nhớ, khó mở rộng cho lưới lớn.
 
-![BFS Demo](./demo_bfs.gif)
+![BFS Demo](./gif/demo_bfs.gif)
 
 ---
 
@@ -42,7 +42,7 @@ Các thuật toán không sử dụng thông tin về khoảng cách hay chi ph�
 - **Ưu điểm:** Giảm bộ nhớ so với BFS, vẫn đảm bảo tối ưu.  
 - **Nhược điểm:** Tốn thời gian do lặp lại các tầng cũ.
 
-![IDS Demo](./demo_ids.gif)
+![IDS Demo](./gif/demo_ids.gif)
 
 ---
 
@@ -51,7 +51,7 @@ Các thuật toán không sử dụng thông tin về khoảng cách hay chi ph�
 - **Ưu điểm:** Luôn tìm được đường đi tối ưu nếu chi phí dương.  
 - **Nhược điểm:** Chậm hơn BFS khi chi phí đồng đều.
 
-![UCS Demo](./demo_ucs.gif)
+![UCS Demo](./gif/demo_ucs.gif)
 
 ---
 
@@ -63,7 +63,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 - **Ưu điểm:** Nhanh, ít bộ nhớ.  
 - **Nhược điểm:** Dễ kẹt trong nghiệm cục bộ, không tối ưu toàn cục.
 
-![Greedy Demo](./demo_greedy.gif)
+![Greedy Demo](./gif/demo_greedy.gif)
 
 ---
 
@@ -72,7 +72,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 - **Ưu điểm:** Tìm được đường đi tối ưu toàn cục nếu `h(n)` phù hợp.  
 - **Nhược điểm:** Tốn bộ nhớ vì phải lưu nhiều trạng thái.
 
-![A* Demo](./demo_astar.gif)
+![A* Demo](./gif/demo_astar.gif)
 
 ---
 
@@ -81,7 +81,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 - **Ưu điểm:** Tối ưu hóa tốc độ, giảm bộ nhớ.  
 - **Nhược điểm:** Có thể bỏ lỡ nghiệm do giới hạn beam width.
 
-![Beam Search Demo](./demo_beam.gif)
+![Beam Search Demo](./gif/demo_beam.gif)
 
 ---
 
@@ -92,7 +92,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 - **Ưu điểm:** Đơn giản, nhanh.  
 - **Nhược điểm:** Dễ mắc kẹt ở cực trị cục bộ.
 
-![Hill Climbing Demo](./demo_hill.gif)
+![Hill Climbing Demo](./gif/demo_hill.gif)
 
 ---
 
@@ -101,7 +101,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 - **Ưu điểm:** Cải thiện Hill Climbing, có khả năng tìm nghiệm tốt hơn.  
 - **Nhược điểm:** Cần tinh chỉnh thông số T và α.
 
-![Simulated Annealing Demo](./demo_sa.gif)
+![Simulated Annealing Demo](./gif/demo_sa.gif)
 
 ---
 
@@ -112,7 +112,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 - **Ưu điểm:** Dễ hiểu, giải được nhiều loại ràng buộc.  
 - **Nhược điểm:** Tốc độ chậm với lưới lớn.
 
-![Backtracking Demo](./demo_bt.gif)
+![Backtracking Demo](./gif/demo_bt.gif)
 
 ---
 
@@ -121,7 +121,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 - **Ưu điểm:** Tránh sai sớm, hiệu quả hơn Backtracking thường.  
 - **Nhược điểm:** Tốn thêm bộ nhớ để duy trì domain.
 
-![Forward Checking Demo](./demo_fc.gif)
+![Forward Checking Demo](./gif/demo_fc.gif)
 
 ---
 
@@ -130,7 +130,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 - **Ưu điểm:** Giảm đáng kể số bước thử sai.  
 - **Nhược điểm:** Không đảm bảo tìm được nghiệm nếu ràng buộc phức tạp.
 
-![AC-3 Demo](./demo_ac3.gif)
+![AC-3 Demo](./gif/demo_ac3.gif)
 
 ---
 
@@ -141,7 +141,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 - **Ưu điểm:** Tìm lời giải trong các bài toán lập kế hoạch phân nhánh.  
 - **Nhược điểm:** Khó biểu diễn và trực quan hóa.
 
-![And-Or Demo](./demo_andor.gif)
+![And-Or Demo](./gif/demo_andor.gif)
 
 ---
 
@@ -150,7 +150,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 - **Ưu điểm:** Dùng cho bài toán có tính ngẫu nhiên hoặc ẩn thông tin.  
 - **Nhược điểm:** Tính toán phức tạp, khó mở rộng.
 
-![Belief Search Demo](./demo_belief.gif)
+![Belief Search Demo](./gif/demo_belief.gif)
 
 ---
 
