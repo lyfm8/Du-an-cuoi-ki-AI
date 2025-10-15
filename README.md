@@ -1,5 +1,11 @@
 # FLOW FREE SOLVER – ỨNG DỤNG MINH HỌA CÁC THUẬT TOÁN TÌM KIẾM TRÍ TUỆ NHÂN TẠO
 
+## Thành viên thực hiện
+| STT | Họ và tên                   | MSSV       |
+|-----|-----------------------------|------------|
+| 1   | Phan Kế Duy			        | 23110087   |
+| 2   | Lê Nguyễn Đăng Khoa         | 23110115   |
+| 3   | Phạm Nguyễn Đăng Khoa       | 23110117   |
 ---
 
 ## GIỚI THIỆU
@@ -170,3 +176,15 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 
 ```bash
 python main_ff.py
+```
+## Cấu trúc dự án
+```
+Du-an-cuoi-ki-AI
+│
+├── algorithm_ff.py       # Thuật toán tìm kiếm
+├── UI_ff.py              # Giao diện (GUI)
+├── main_ff.py            # Điểm khởi chạy
+├── requirements.txt      # Thư viện cần cài
+├── levels/               # Các màn chơi (tùy chọn)
+├── gif            		  # Các file GIF minh họa
+└── README.md             # File mô tả dự án
