@@ -93,6 +93,7 @@ class algorithm:
 
                 if not self.blocked(newGrid, remainingColors):
                     self.ui.log(f" Hop le. Dua trang thai vao stack. Duong di: {pathStr}")
+                    #self.ui.paint_path(path,colorsToProcess)
                     stack.append((newGrid, remainingColors))
                 #else:
                     #self.ui.log(" Chan duong mau khac nen khong dua vao stack")
@@ -153,7 +154,7 @@ class algorithm:
                         #self.ui.log(" Trang thai nay co mau bi chan duong")
         return False, None
 
-    def SASolver(self, intialGrid, colors, TStart=100, TEnd=1, alpha=0.95, maxIter=500):
+    def SASolver(self, intialGrid, colors, TStart=10, TEnd=1, alpha=0.995, maxIter=500):
         currentGrid = copy.deepcopy(intialGrid)
         bestGrid = copy.deepcopy(intialGrid)
         currentCost = self.evaluateCost(currentGrid, colors)
@@ -166,6 +167,8 @@ class algorithm:
         self.ui.log(f"  🔹 Cost ban đầu: {currentCost}")
 
         while T > TEnd and iterations < maxIter:
+            if self.ui.stop_requested:
+                return False, None
             iterations += 1
             newGrid = self.generateNeighbor(currentGrid, colors)
             newCost = self.evaluateCost(newGrid, colors)
@@ -216,12 +219,12 @@ class algorithm:
 
         for color in colors:
             start, end = self.ui.pairs[color]
-            dist = abs(start[0] - end[0]) + abs(start[1] - end[1]) #mahattan
+            #dist = abs(start[0] - end[0]) + abs(start[1] - end[1]) #mahattan
 
             #Dem so o ma mau nay dang chiem
-            occupied = sum(1 for r in range(self.ui.grid_size)
+            '''occupied = sum(1 for r in range(self.ui.grid_size)
                            for c in range(self.ui.grid_size)
-                           if grid[r][c] == color)
+                           if grid[r][c] == color)'''
 
             q = deque([start])
             visited = {start}
@@ -240,10 +243,10 @@ class algorithm:
             if not foundEnd:
                 totalCost += 10
 
-            totalCost += abs(occupied-dist)
+            #totalCost += abs(occupied-dist)
 
         if self.blocked(grid, colors):
-            penaltyBlock += 5
+            penaltyBlock += 7.5
 
         #Dem so o trong
         emptyCells = sum(1 for r in range(self.ui.grid_size)
@@ -1545,6 +1548,7 @@ class algorithm:
         else:
             self.ui.log("⛔ Không tìm thấy lời giải.")
             return False, None
+
 
 
 

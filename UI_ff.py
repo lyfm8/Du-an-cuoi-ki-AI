@@ -245,7 +245,7 @@ class UI:
 
 
     def update_speed(self, val):
-        self.speed = 0.2 / float(val)
+        self.speed = 0.02 / float(val)
 
 
     def mark_start_end(self):
@@ -515,7 +515,7 @@ class UI:
                                             capstyle="round", tags=("path_line_viz",))
         self.mark_start_end()
         self.master.update()
-        time.sleep(self.speed)
+        time.sleep(self.speed*8)
 
     def reset_game(self):
         # Dừng quá trình giải nếu đang chạy
