@@ -1,8 +1,8 @@
-# 🎮 FLOW FREE SOLVER – ỨNG DỤNG MINH HỌA CÁC THUẬT TOÁN TÌM KIẾM TRÍ TUỆ NHÂN TẠO
+# FLOW FREE SOLVER – ỨNG DỤNG MINH HỌA CÁC THUẬT TOÁN TÌM KIẾM TRÍ TUỆ NHÂN TẠO
 
 ---
 
-## 🧩 GIỚI THIỆU
+## GIỚI THIỆU
 
 **Flow Free Solver** là một ứng dụng minh họa trực quan các **thuật toán tìm kiếm trong Trí tuệ Nhân tạo (AI)** thông qua trò chơi **Flow Free**.
 
@@ -14,12 +14,12 @@ Bài toán này thuộc lớp **NP-Hard**, có không gian trạng thái lớn, 
 
 ---
 
-## 🧠 NHÓM THUẬT TOÁN TRIỂN KHAI
+## NHÓM THUẬT TOÁN TRIỂN KHAI
 
-### 🔹 UNINFORMED SEARCH (TÌM KIẾM KHÔNG THÔNG TIN)
+### UNINFORMED SEARCH (TÌM KIẾM KHÔNG THÔNG TIN)
 Các thuật toán không sử dụng thông tin về khoảng cách hay chi phí đến mục tiêu.
 
-#### 🌳 DFS (Depth-First Search)
+#### DFS (Depth-First Search)
 - **Nguyên lý:** Đi sâu nhất có thể theo mỗi nhánh, dùng stack.  
 - **Ưu điểm:** Bộ nhớ nhỏ, có thể tìm nghiệm nhanh nếu gần gốc.  
 - **Nhược điểm:** Dễ kẹt trong vòng lặp, không đảm bảo đường ngắn nhất.
@@ -28,7 +28,7 @@ Các thuật toán không sử dụng thông tin về khoảng cách hay chi ph�
 
 ---
 
-#### 🌊 BFS (Breadth-First Search)
+#### BFS (Breadth-First Search)
 - **Nguyên lý:** Duyệt theo tầng, mở rộng tất cả node ở cùng độ sâu trước.  
 - **Ưu điểm:** Luôn tìm được đường đi ngắn nhất.  
 - **Nhược điểm:** Tốn bộ nhớ, khó mở rộng cho lưới lớn.
@@ -37,7 +37,7 @@ Các thuật toán không sử dụng thông tin về khoảng cách hay chi ph�
 
 ---
 
-#### 💡 IDS (Iterative Deepening Search)
+#### IDS (Iterative Deepening Search)
 - **Nguyên lý:** Kết hợp BFS và DFS. Thực hiện DFS nhiều lần với giới hạn độ sâu tăng dần.  
 - **Ưu điểm:** Giảm bộ nhớ so với BFS, vẫn đảm bảo tối ưu.  
 - **Nhược điểm:** Tốn thời gian do lặp lại các tầng cũ.
@@ -46,7 +46,7 @@ Các thuật toán không sử dụng thông tin về khoảng cách hay chi ph�
 
 ---
 
-#### ⚙️ UCS (Uniform Cost Search)
+#### UCS (Uniform Cost Search)
 - **Nguyên lý:** Mở rộng theo chi phí nhỏ nhất từ gốc (priority queue).  
 - **Ưu điểm:** Luôn tìm được đường đi tối ưu nếu chi phí dương.  
 - **Nhược điểm:** Chậm hơn BFS khi chi phí đồng đều.
@@ -55,10 +55,10 @@ Các thuật toán không sử dụng thông tin về khoảng cách hay chi ph�
 
 ---
 
-### 🔹 INFORMED SEARCH (TÌM KIẾM CÓ THÔNG TIN)
+### INFORMED SEARCH (TÌM KIẾM CÓ THÔNG TIN)
 Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượng khoảng cách tới mục tiêu.
 
-#### 💎 Greedy Search
+#### Greedy Search
 - **Nguyên lý:** Luôn chọn node “gần đích nhất” theo heuristic.  
 - **Ưu điểm:** Nhanh, ít bộ nhớ.  
 - **Nhược điểm:** Dễ kẹt trong nghiệm cục bộ, không tối ưu toàn cục.
@@ -67,7 +67,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 
 ---
 
-#### 🚀 A* Search
+#### A* Search
 - **Nguyên lý:** Kết hợp giữa UCS và Greedy với công thức `f(n) = g(n) + h(n)`.  
 - **Ưu điểm:** Tìm được đường đi tối ưu toàn cục nếu `h(n)` phù hợp.  
 - **Nhược điểm:** Tốn bộ nhớ vì phải lưu nhiều trạng thái.
@@ -76,7 +76,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 
 ---
 
-#### 🔭 Beam Search
+#### Beam Search
 - **Nguyên lý:** Giữ lại tối đa `k` node “tốt nhất” ở mỗi tầng.  
 - **Ưu điểm:** Tối ưu hóa tốc độ, giảm bộ nhớ.  
 - **Nhược điểm:** Có thể bỏ lỡ nghiệm do giới hạn beam width.
@@ -85,9 +85,9 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 
 ---
 
-### 🔹 LOCAL SEARCH & OPTIMIZATION (TÌM KIẾM CẢI TIẾN DẦN)
+### LOCAL SEARCH & OPTIMIZATION (TÌM KIẾM CẢI TIẾN DẦN)
 
-#### 🧗 Hill Climbing
+#### Hill Climbing
 - **Nguyên lý:** Chọn bước đi tốt hơn liên tục cho đến khi không thể cải thiện.  
 - **Ưu điểm:** Đơn giản, nhanh.  
 - **Nhược điểm:** Dễ mắc kẹt ở cực trị cục bộ.
@@ -96,7 +96,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 
 ---
 
-#### 🔥 Simulated Annealing
+#### Simulated Annealing
 - **Nguyên lý:** Cho phép “lùi bước” ngẫu nhiên theo nhiệt độ T để thoát cực trị cục bộ.  
 - **Ưu điểm:** Cải thiện Hill Climbing, có khả năng tìm nghiệm tốt hơn.  
 - **Nhược điểm:** Cần tinh chỉnh thông số T và α.
@@ -105,9 +105,9 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 
 ---
 
-### 🔹 CONSTRAINT SATISFACTION PROBLEM (CSP)
+### CONSTRAINT SATISFACTION PROBLEM (CSP)
 
-#### ♟ Backtracking
+#### Backtracking
 - **Nguyên lý:** Gán từng biến màu, nếu sai thì quay lui (backtrack).  
 - **Ưu điểm:** Dễ hiểu, giải được nhiều loại ràng buộc.  
 - **Nhược điểm:** Tốc độ chậm với lưới lớn.
@@ -116,7 +116,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 
 ---
 
-#### ♻️ Forward Checking
+#### Forward Checking
 - **Nguyên lý:** Rút gọn miền giá trị của các biến còn lại sau mỗi bước gán.  
 - **Ưu điểm:** Tránh sai sớm, hiệu quả hơn Backtracking thường.  
 - **Nhược điểm:** Tốn thêm bộ nhớ để duy trì domain.
@@ -125,7 +125,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 
 ---
 
-#### 🔗 AC-3 (Arc Consistency)
+#### AC-3 (Arc Consistency)
 - **Nguyên lý:** Lan truyền ràng buộc giữa các biến, loại bỏ giá trị không hợp lệ.  
 - **Ưu điểm:** Giảm đáng kể số bước thử sai.  
 - **Nhược điểm:** Không đảm bảo tìm được nghiệm nếu ràng buộc phức tạp.
@@ -134,9 +134,9 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 
 ---
 
-### 🔹 PLANNING & LOGIC
+### PLANNING & LOGIC
 
-#### ⚡ And-Or Search
+#### And-Or Search
 - **Nguyên lý:** Mô hình hóa bài toán có nhiều nhánh lựa chọn và phụ thuộc logic.  
 - **Ưu điểm:** Tìm lời giải trong các bài toán lập kế hoạch phân nhánh.  
 - **Nhược điểm:** Khó biểu diễn và trực quan hóa.
@@ -145,7 +145,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 
 ---
 
-#### 👁 Belief Search
+#### Belief Search
 - **Nguyên lý:** Tìm kiếm trong môi trường quan sát không đầy đủ.  
 - **Ưu điểm:** Dùng cho bài toán có tính ngẫu nhiên hoặc ẩn thông tin.  
 - **Nhược điểm:** Tính toán phức tạp, khó mở rộng.
@@ -154,7 +154,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 
 ---
 
-## 🧰 CÔNG NGHỆ SỬ DỤNG
+## CÔNG NGHỆ SỬ DỤNG
 
 | Thành phần | Mô tả |
 |-------------|--------|
@@ -166,7 +166,7 @@ Các thuật toán có sử dụng **hàm heuristic (h(n))** để ước lượ
 
 ---
 
-## 🧪 CÁCH CHẠY CHƯƠNG TRÌNH
+## CÁCH CHẠY CHƯƠNG TRÌNH
 
 ```bash
 python main_ff.py
